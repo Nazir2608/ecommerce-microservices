@@ -1,0 +1,32 @@
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+*.env.local
+*.env.production
+secrets/
+
+# ─── Maven ────────────────────────────────────────────────────────────────────
+target/
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.class
+*.log
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# Don't ignore docker-compose.yml — that's source code
+# Do ignore local override files
+docker-compose.override.yml
+
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Test / Coverage ──────────────────────────────────────────────────────────
+/coverage
+*.exec

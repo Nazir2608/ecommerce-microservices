@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: user-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
+
+server:
+  port: 8081
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    health-check-url-path: /actuator/health
+    lease-renewal-interval-in-seconds: 10
+
+# Kafka producer config
+spring.kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    acks: all             # Wait for all replicas to acknowledge (strongest guarantee)
+    retries: 3
+    properties:
+      spring.json.trusted.packages: "com.ecommerce.dto"
+      enable.idempotence: true   # Exactly-once delivery from producer side
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern:
+    # Include trace ID in every log line for correlation with Zipkin
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
