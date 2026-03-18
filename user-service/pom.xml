@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>user-service</artifactId>
-    <n>User Service - Authentication and User Management</n>
+    <name>User Service - Authentication and User Management</name>
 
     <dependencies>
         <dependency>
@@ -72,6 +72,7 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version>
         </dependency>
         <!-- Kafka for publishing user events -->
         <dependency>
@@ -104,8 +105,18 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.5.5.Final</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>
