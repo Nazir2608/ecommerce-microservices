@@ -1,0 +1,293 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Nazir E-Commerce Microservices — Docker Compose
+#
+# STARTUP ORDER (enforced via healthchecks + depends_on):
+#   infrastructure  →  service-registry  →  config-server
+#                   →  api-gateway  →  business services
+#
+# COMMANDS:
+#   Start all          : docker compose up -d
+#   Infra only         : docker compose up -d postgres redis kafka zookeeper zipkin
+#   Tail logs          : docker compose logs -f user-service
+#   Stop everything    : docker compose down
+#   Wipe all volumes   : docker compose down -v
+# ─────────────────────────────────────────────────────────────────────────────
+
+networks:
+  nazir-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  zookeeper-data:
+  kafka-data:
+  elasticsearch-data:
+
+services:
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE LAYER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ── PostgreSQL (user-service DB) ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: nazir-postgres
+    networks: [nazir-network]
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: nazir-redis
+    networks: [nazir-network]
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-nazirredis}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-nazirredis}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis Commander (GUI) ─────────────────────────────────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: nazir-redis-commander
+    networks: [nazir-network]
+    depends_on: [redis]
+    ports:
+      - "8090:8081"
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:${REDIS_PASSWORD:-nazirredis}"
+    # Browse: http://localhost:8090
+
+  # ── Zookeeper ─────────────────────────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    container_name: nazir-zookeeper
+    networks: [nazir-network]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Kafka ─────────────────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: nazir-kafka
+    networks: [nazir-network]
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Kafdrop (Kafka UI) ────────────────────────────────────────────────────────
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: nazir-kafdrop
+    networks: [nazir-network]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+    # Browse topics: http://localhost:9000
+
+  # ── Zipkin (distributed tracing) ──────────────────────────────────────────────
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: nazir-zipkin
+    networks: [nazir-network]
+    ports:
+      - "9411:9411"
+    # Trace viewer: http://localhost:9411
+
+  # ── Mailhog (local SMTP + email UI) ───────────────────────────────────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: nazir-mailhog
+    networks: [nazir-network]
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    # View emails: http://localhost:8025
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nazir-prometheus
+    networks: [nazir-network]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nazir-grafana
+    networks: [nazir-network]
+    depends_on: [prometheus]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PLATFORM SERVICES (Spring Cloud)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ── Service Registry (Eureka) ─────────────────────────────────────────────────
+  service-registry:
+    build:
+      context: ./service-registry
+      dockerfile: Dockerfile
+    container_name: nazir-service-registry
+    networks: [nazir-network]
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_USERNAME: ${EUREKA_USERNAME:-eurekauser}
+      EUREKA_PASSWORD: ${EUREKA_PASSWORD:-eurekapassword}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eurekauser:eurekapassword@localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    # Dashboard: http://localhost:8761 (eurekauser / eurekapassword)
+
+  # ── Config Server ─────────────────────────────────────────────────────────────
+  config-server:
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    container_name: nazir-config-server
+    networks: [nazir-network]
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+    environment:
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME:-configuser}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD:-configpassword}
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-u", "configuser:configpassword", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── API Gateway ───────────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: nazir-api-gateway
+    networks: [nazir-network]
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
+      JWT_SECRET: ${JWT_SECRET:-NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BUSINESS SERVICES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # ── User Service ──────────────────────────────────────────────────────────────
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: nazir-user-service
+    networks: [nazir-network]
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      DB_URL: jdbc:postgresql://postgres:5432/userdb
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASS: ${POSTGRES_PASSWORD:-postgres}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET:-NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

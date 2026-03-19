@@ -1,28 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<<<<<<< HEAD
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.ecommerce</groupId>
+=======
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.nazir.ecommerce</groupId>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <artifactId>ecommerce-microservices</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>user-service</artifactId>
+<<<<<<< HEAD
     <name>User Service - Authentication and User Management</name>
 
     <dependencies>
+=======
+    <name>Nazir :: User Service</name>
+    <description>
+        User registration, authentication (JWT), profile management.
+        Database: PostgreSQL | Cache: Redis | Events: Kafka
+    </description>
+
+    <dependencies>
+
+        <!-- ── Web ──────────────────────────────────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+<<<<<<< HEAD
+=======
+
+        <!-- ── Security ─────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ── Validation (Bean Validation / @Valid) ─────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ── JPA + PostgreSQL ──────────────────────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
@@ -30,6 +69,37 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+=======
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ── Flyway — DB schema migrations ────────────────────────────────── -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- ── Redis — refresh token store + session blacklist ───────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Connection pooling for Redis via Lettuce (default) -->
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+        </dependency>
+
+        <!-- ── Kafka — publish user domain events ────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- ── Spring Cloud — Eureka client + Config client ─────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -38,6 +108,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+<<<<<<< HEAD
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -54,6 +125,10 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
         <!-- JWT -->
+=======
+
+        <!-- ── JWT ───────────────────────────────────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -68,6 +143,7 @@
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
+<<<<<<< HEAD
         <!-- MapStruct for DTO mapping -->
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -80,11 +156,37 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
         <!-- Micrometer Prometheus for metrics -->
+=======
+
+        <!-- ── MapStruct — DTO ↔ Entity mapping ─────────────────────────────── -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+
+        <!-- ── Prometheus metrics ────────────────────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+<<<<<<< HEAD
         <!-- Test -->
+=======
+
+        <!-- ── Swagger / OpenAPI ─────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
+        <!-- ── Test ──────────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
@@ -92,19 +194,36 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
+<<<<<<< HEAD
+=======
+            <artifactId>kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
+<<<<<<< HEAD
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+=======
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+<<<<<<< HEAD
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
@@ -120,4 +239,12 @@
             </plugin>
         </plugins>
     </build>
+=======
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
 </project>

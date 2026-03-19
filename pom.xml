@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<<<<<<< HEAD
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,10 +33,51 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
+=======
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ─── Parent ─────────────────────────────────────────────────────────── -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/>
+    </parent>
+
+    <!-- ─── Project coordinates ────────────────────────────────────────────── -->
+    <groupId>com.nazir.ecommerce</groupId>
+    <artifactId>ecommerce-microservices</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Nazir :: E-Commerce Microservices</name>
+    <description>
+        Production-ready microservices platform — learning and portfolio project.
+        Services: user, product, order, payment, notification.
+    </description>
+
+    <!-- ─── Modules ─────────────────────────────────────────────────────────── -->
+    <modules>
+        <module>config-server</module>
+        <module>service-registry</module>
+        <module>api-gateway</module>
+        <module>user-service</module>
+        <module>product-service</module>
+        <module>order-service</module>
+        <module>payment-service</module>
+        <module>notification-service</module>
+    </modules>
+
+    <!-- ─── Properties ──────────────────────────────────────────────────────── -->
+    <properties>
+        <java.version>21</java.version>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+<<<<<<< HEAD
         <!-- Dependency versions -->
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
@@ -46,6 +88,22 @@
     <dependencyManagement>
         <dependencies>
             <!-- Spring Cloud BOM -->
+=======
+        <!-- Dependency versions — managed here so every module uses the same -->
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok.version>1.18.32</lombok.version>
+        <jjwt.version>0.12.5</jjwt.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
+        <springdoc.version>2.4.0</springdoc.version>
+    </properties>
+
+    <!-- ─── Dependency Management (BOM) ────────────────────────────────────── -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- Spring Cloud BOM — resolves all spring-cloud-* versions -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -54,6 +112,18 @@
                 <scope>import</scope>
             </dependency>
 
+<<<<<<< HEAD
+=======
+            <!-- Testcontainers BOM -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
             <!-- JWT -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
@@ -64,11 +134,19 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-impl</artifactId>
                 <version>${jjwt.version}</version>
+<<<<<<< HEAD
+=======
+                <scope>runtime</scope>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt.version}</version>
+<<<<<<< HEAD
+=======
+                <scope>runtime</scope>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
             </dependency>
 
             <!-- MapStruct -->
@@ -77,6 +155,7 @@
                 <artifactId>mapstruct</artifactId>
                 <version>${mapstruct.version}</version>
             </dependency>
+<<<<<<< HEAD
 
             <!-- Testcontainers BOM -->
             <dependency>
@@ -90,6 +169,25 @@
     </dependencyManagement>
 
     <!-- Dependencies shared by all services -->
+=======
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+
+            <!-- SpringDoc OpenAPI (Swagger UI) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ─── Shared dependencies for ALL modules ─────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -98,6 +196,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+<<<<<<< HEAD
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -106,6 +205,16 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <!-- Distributed tracing via Micrometer + Zipkin -->
+=======
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Distributed tracing via Micrometer → Zipkin -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
@@ -116,6 +225,10 @@
         </dependency>
     </dependencies>
 
+<<<<<<< HEAD
+=======
+    <!-- ─── Plugin Management ───────────────────────────────────────────────── -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
     <build>
         <pluginManagement>
             <plugins>
@@ -129,12 +242,19 @@
                                 <artifactId>lombok</artifactId>
                             </exclude>
                         </excludes>
+<<<<<<< HEAD
                         <!-- Build OCI image with Cloud Native Buildpacks -->
                         <image>
                             <name>ecommerce/${project.artifactId}:${project.version}</name>
                         </image>
                     </configuration>
                 </plugin>
+=======
+                    </configuration>
+                </plugin>
+
+                <!-- Compiler: enable Lombok + MapStruct annotation processors -->
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -145,6 +265,10 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
+<<<<<<< HEAD
+=======
+                                <version>${lombok.version}</version>
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
                             </path>
                             <path>
                                 <groupId>org.mapstruct</groupId>
@@ -157,4 +281,8 @@
             </plugins>
         </pluginManagement>
     </build>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
 </project>

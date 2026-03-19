@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: notification-service
+server:
+  port: 0  # random port — placeholder until Phase 2
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true

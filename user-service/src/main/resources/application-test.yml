@@ -1,0 +1,35 @@
+# application-test.yml — active when @ActiveProfiles("test")
+# Testcontainers override the DB/Redis/Kafka URLs automatically via @DynamicPropertySource.
+# This file only sets values that DON'T require live containers.
+
+spring:
+  flyway:
+    enabled: true
+    clean-on-validation-error: true   # reset schema between integration test runs
+
+  # Disable Config Server import during tests (no server running)
+  config:
+    import: ""
+
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+
+jwt:
+  secret: TestSecretKeyForJWTThatIsAtLeast256BitsLongForHS256Tests!!
+  access-token-expiry-ms: 300000    # 5 min — fast expiry for token expiry tests
+  refresh-token-expiry-ms: 600000   # 10 min
+
+eureka:
+  client:
+    enabled: false       # Don't try to register with Eureka in tests
+
+management:
+  tracing:
+    enabled: false
+
+logging:
+  level:
+    com.nazir.ecommerce: DEBUG
+    org.springframework.security: DEBUG
+    org.testcontainers: WARN
+    org.hibernate.SQL: DEBUG
