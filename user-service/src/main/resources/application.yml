@@ -1,95 +1,36 @@
-<<<<<<< HEAD
 spring:
   application:
     name: user-service
   config:
     import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
-
-server:
-  port: 8081
-
-=======
-# ─────────────────────────────────────────────────────────────────────────────
-# user-service/src/main/resources/application.yml
-#
-# LEARNING POINT — Externalized configuration (12-Factor App, Factor III):
-#   Sensitive values (passwords, secrets) come from environment variables.
-#   The syntax ${VAR_NAME:default_value} means:
-#     → use $VAR_NAME from environment if set, otherwise use default_value.
-#   In Docker: set via `environment:` in docker-compose.yml
-#   In production: inject from AWS Secrets Manager / HashiCorp Vault
-# ─────────────────────────────────────────────────────────────────────────────
-
-spring:
-  application:
-    name: user-service           # Registered under this name in Eureka
-
-  # ── Config Server ────────────────────────────────────────────────────────────
-  # Pull additional config from the central Config Server on startup.
-  # optional: means the service still starts if Config Server is unreachable.
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
-
-  # ── Database (PostgreSQL) ────────────────────────────────────────────────────
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/userdb}
     username: ${DB_USER:postgres}
     password: ${DB_PASS:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      # LEARNING POINT — Connection pool sizing:
-      # Formula: pool_size = (core_count * 2) + effective_spindle_count
-      # For a 2-core dev machine: (2*2)+1 = 5. Keep small in dev.
       maximum-pool-size: 10
       minimum-idle: 2
-      connection-timeout: 30000    # 30 seconds
-      idle-timeout: 600000         # 10 minutes
-      max-lifetime: 1800000        # 30 minutes
+      connection-timeout: 30000
       pool-name: UserServicePool
-
   jpa:
     hibernate:
-      # LEARNING POINT — ddl-auto strategies:
-      #   create        → drops and recreates schema on every startup (DEV ONLY)
-      #   create-drop   → creates on start, drops on shutdown
-      #   update        → tries to alter tables to match entities (RISKY in prod)
-      #   validate      → validates schema matches entities, fails if not (PROD)
-      #   none          → do nothing (use when Flyway manages the schema)
-      ddl-auto: validate           # Flyway creates the schema; JPA only validates
-    show-sql: false                # Set to true for debugging N+1 queries
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
-        # Batch inserts: group multiple INSERT INTO in a single DB round-trip
-        jdbc.batch_size: 25
-        order_inserts: true
-        order_updates: true
-
-  # ── Flyway — DB migrations ────────────────────────────────────────────────────
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    # LEARNING POINT: Flyway reads files in order: V1__..., V2__..., V3__...
-    # Naming: V{version}__{description}.sql (double underscore)
-    # Never modify an existing migration; always add a new versioned file.
-
-  # ── Redis ─────────────────────────────────────────────────────────────────────
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-      # Connection pool (Lettuce)
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 4
-          min-idle: 1
-
-  # ── Kafka Producer ────────────────────────────────────────────────────────────
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -97,120 +38,47 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       retries: 3
-      properties:
-        enable.idempotence: true
-        spring.json.add.type.headers: false  # don't add Java class name in headers
 
-# ── Server ────────────────────────────────────────────────────────────────────
 server:
   port: ${SERVER_PORT:8081}
-  error:
-    include-message: never       # Don't leak internal error messages in prod
-    include-stacktrace: never
 
-# ── JWT ────────────────────────────────────────────────────────────────────────
-# IMPORTANT: In production, override jwt.secret via environment variable or
-# Spring Cloud Config with an encrypted value (e.g. {cipher}...).
 jwt:
   secret: ${JWT_SECRET:NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
-  access-token-expiry-ms: ${JWT_ACCESS_EXPIRY_MS:86400000}     # 24 hours
-  refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}  # 7 days
+  access-token-expiry-ms: ${JWT_ACCESS_EXPIRY_MS:86400000}
+  refresh-token-expiry-ms: ${JWT_REFRESH_EXPIRY_MS:604800000}
 
-# ── Eureka Client ──────────────────────────────────────────────────────────────
->>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
     register-with-eureka: true
     fetch-registry: true
-<<<<<<< HEAD
   instance:
     prefer-ip-address: true
     health-check-url-path: /actuator/health
-    lease-renewal-interval-in-seconds: 10
 
-# Kafka producer config
-spring.kafka:
-  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-  producer:
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    acks: all             # Wait for all replicas to acknowledge (strongest guarantee)
-    retries: 3
-    properties:
-      spring.json.trusted.packages: "com.ecommerce.dto"
-      enable.idempotence: true   # Exactly-once delivery from producer side
-
-=======
-    registry-fetch-interval-seconds: 10
-  instance:
-    prefer-ip-address: true
-    health-check-url-path: /actuator/health
-    # Heartbeat every 10s (default 30s — faster in dev so Eureka reflects state sooner)
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
-
-# ── Actuator + Metrics ─────────────────────────────────────────────────────────
->>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
 management:
   endpoints:
     web:
       exposure:
-<<<<<<< HEAD
         include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
-  metrics:
-    tags:
-      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
 
-logging:
-  pattern:
-    # Include trace ID in every log line for correlation with Zipkin
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-=======
-        include: health,info,metrics,prometheus,flyway,loggers
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
-  metrics:
-    tags:
-      # Tag all metrics with the application name → filter in Grafana
-      application: ${spring.application.name}
-    export:
-      prometheus:
-        enabled: true
-
-# ── SpringDoc / Swagger UI ─────────────────────────────────────────────────────
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    display-request-duration: true
-    groups-order: DESC
-    operations-sorter: method
-    tags-sorter: alpha
   api-docs:
     path: /v3/api-docs
 
-# ── Zipkin distributed tracing ─────────────────────────────────────────────────
-management:
-  tracing:
-    sampling:
-      probability: 1.0     # 100% of traces in dev; reduce to 0.1 in prod
-
-# ── Logging ────────────────────────────────────────────────────────────────────
 logging:
-  # Include traceId and spanId in every log line so you can correlate with Zipkin
   pattern:
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
   level:
     root: INFO
     com.nazir.ecommerce: DEBUG
     org.springframework.security: INFO
-    org.hibernate.SQL: INFO          # Set to DEBUG to see all SQL queries
-    org.hibernate.orm.jdbc.bind: INFO # Set to TRACE to see query parameter values
->>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
