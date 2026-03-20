@@ -10,7 +10,7 @@ VALUES (
     'admin',
     'admin@ecommerce.com',
     -- BCrypt hash of 'Admin@12345' with strength=12
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewrDMlEAbSp/6tm.',
+    '$2a$12$vxafP5B6CobcfYP2ulzFbuNS5Qh.vtnxFNcFTs3cdFhYZf4fwzaoO',
     'System',
     'Admin',
     'ACTIVE',
