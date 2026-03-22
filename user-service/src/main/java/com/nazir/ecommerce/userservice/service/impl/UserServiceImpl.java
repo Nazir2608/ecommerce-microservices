@@ -165,7 +165,6 @@ public class UserServiceImpl implements UserService {
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     private User findById(UUID id) {
-        return userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + id));
+        return userRepository.findByIdWithRoles(id).orElseThrow(() -> new UserNotFoundException("User not found: " + id));
     }
 }

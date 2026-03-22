@@ -63,10 +63,6 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
-    /**
-     * BCrypt-hashed password. NEVER store plain text.
-     * The column is excluded from toString and never returned in DTOs.
-     */
     @Column(name = "password", nullable = false)
     private String password;
 

@@ -40,31 +40,23 @@ import java.util.UUID;
 @Builder
 public class UserEvent {
 
-    /** Unique event ID — used by consumers for idempotency. */
     @Builder.Default
     private String eventId = UUID.randomUUID().toString();
 
-    /** What happened. */
     private EventType eventType;
 
-    /** Who it happened to. */
     private UUID userId;
 
-    // Denormalized snapshot — consumers don't need to call user-service
     private String email;
     private String username;
     private String firstName;
     private String lastName;
 
-    /** When it happened — ISO-8601, UTC. */
     @Builder.Default
     private LocalDateTime occurredAt = LocalDateTime.now();
 
-    /** Service that produced this event. */
     @Builder.Default
     private String source = "user-service";
-
-    // ─── Event types ──────────────────────────────────────────────────────────
 
     public enum EventType {
         USER_REGISTERED,

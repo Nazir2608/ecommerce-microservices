@@ -103,20 +103,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         // Return a generic message — don't tell attackers whether email or password is wrong
-        return buildProblem(HttpStatus.UNAUTHORIZED, "auth-failed",
-                "Authentication Failed", "Invalid email or password");
+        return buildProblem(HttpStatus.UNAUTHORIZED, "auth-failed", "Authentication Failed", "Invalid email or password");
     }
 
     @ExceptionHandler(DisabledException.class)
     public ProblemDetail handleDisabled(DisabledException ex) {
-        return buildProblem(HttpStatus.FORBIDDEN, "account-disabled",
-                "Account Disabled", "Your account is disabled. Please contact support.");
+        return buildProblem(HttpStatus.FORBIDDEN, "account-disabled", "Account Disabled", "Your account is disabled. Please contact support.");
     }
 
     @ExceptionHandler(LockedException.class)
     public ProblemDetail handleLocked(LockedException ex) {
-        return buildProblem(HttpStatus.FORBIDDEN, "account-locked",
-                "Account Locked", "Your account is temporarily locked due to too many failed login attempts.");
+        return buildProblem(HttpStatus.FORBIDDEN, "account-locked", "Account Locked", "Your account is temporarily locked due to too many failed login attempts.");
     }
 
     // ─── Catch-all ────────────────────────────────────────────────────────────

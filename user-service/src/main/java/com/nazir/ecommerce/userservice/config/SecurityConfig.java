@@ -27,15 +27,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * │  LEARNING POINT — Spring Security 6 (Lambda DSL)                         │
  * │                                                                          │
  * │  Spring Security 5 used method chaining (.and().csrf()...).              │
- * │  Spring Security 6 uses Lambda DSL — cleaner, more readable.            │
+ * │  Spring Security 6 uses Lambda DSL — cleaner, more readable.             │
  * │                                                                          │
  * │  Old (Security 5):                                                       │
  * │    http.csrf().disable()                                                 │
- * │       .sessionManagement().sessionCreationPolicy(STATELESS)             │
+ * │       .sessionManagement().sessionCreationPolicy(STATELESS)              │
  * │                                                                          │
  * │  New (Security 6):                                                       │
  * │    http.csrf(AbstractHttpConfigurer::disable)                            │
- * │       .sessionManagement(s -> s.sessionCreationPolicy(STATELESS))       │
+ * │       .sessionManagement(s -> s.sessionCreationPolicy(STATELESS))        │
  * └──────────────────────────────────────────────────────────────────────────┘
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐

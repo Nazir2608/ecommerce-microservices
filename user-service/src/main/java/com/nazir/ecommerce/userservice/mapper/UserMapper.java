@@ -1,6 +1,7 @@
 package com.nazir.ecommerce.userservice.mapper;
 
 import com.nazir.ecommerce.userservice.dto.request.RegisterRequest;
+import com.nazir.ecommerce.userservice.dto.request.UpdateProfileRequest;
 import com.nazir.ecommerce.userservice.dto.response.UserResponse;
 import com.nazir.ecommerce.userservice.model.User;
 import org.mapstruct.*;
@@ -29,10 +30,7 @@ import org.mapstruct.*;
  * │  Without this, you'd call Mappers.getMapper(UserMapper.class) manually. │
  * └──────────────────────────────────────────────────────────────────────────┘
  */
-@Mapper(
-    componentModel = "spring",
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-)
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
     /**
@@ -83,8 +81,5 @@ public interface UserMapper {
     @Mapping(target = "lastLoginAt",          ignore = true)
     @Mapping(target = "failedLoginAttempts",  ignore = true)
     @Mapping(target = "lockedUntil",          ignore = true)
-    void updateEntity(
-        com.nazir.ecommerce.userservice.dto.request.UpdateProfileRequest request,
-        @MappingTarget User user
-    );
+    void updateEntity(UpdateProfileRequest request, @MappingTarget User user);
 }
