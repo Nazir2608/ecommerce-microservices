@@ -32,22 +32,9 @@ public interface ProductService {
 
     StockResponse getStock(String productId);
 
-    /**
-     * Reserve N units for a pending order.
-     * Increments reservedQuantity — does NOT decrement stockQuantity.
-     * If insufficient available stock → throws InsufficientStockException.
-     */
     void reserveStock(String productId, StockUpdateRequest request);
 
-    /**
-     * Release previously reserved stock.
-     * Called when order is cancelled or payment fails.
-     */
     void releaseStock(String productId, StockUpdateRequest request);
 
-    /**
-     * Permanently deduct stock after successful payment.
-     * Decrements both stockQuantity AND reservedQuantity.
-     */
     void confirmStockDeduction(String productId, StockUpdateRequest request);
 }

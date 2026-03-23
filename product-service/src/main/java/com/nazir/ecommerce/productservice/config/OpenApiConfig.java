@@ -7,11 +7,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-    info = @Info(title = "Product Service API", version = "1.0",
-                 description = "Product catalog, search, and stock management"),
-    servers = {
-        @Server(url = "http://localhost:8085", description = "Local direct"),
-        @Server(url = "http://localhost:8080", description = "Via API Gateway")
-    }
+        info = @Info(title = "Product Service API", version = "1.0",
+                description = "Product catalog, search, and stock management"),
+        servers = {
+                @Server(url = "http://localhost:8085", description = "Local direct"),
+                @Server(url = "http://localhost:8080", description = "Via API Gateway")
+        }
 )
-public class OpenApiConfig {}
+public class OpenApiConfig {
+}

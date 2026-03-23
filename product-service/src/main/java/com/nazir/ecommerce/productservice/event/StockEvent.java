@@ -1,18 +1,23 @@
 package com.nazir.ecommerce.productservice.event;
 
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Domain event published when product stock changes.
- *
+ * <p>
  * LEARNING POINT — Why publish stock events?
- *   order-service subscribes to know when stock is confirmed/released.
- *   An analytics service can subscribe to track inventory levels over time.
- *   Adding a new consumer = zero changes to product-service.
+ * order-service subscribes to know when stock is confirmed/released.
+ * An analytics service can subscribe to track inventory levels over time.
+ * Adding a new consumer = zero changes to product-service.
  */
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class StockEvent {
 
     @Builder.Default

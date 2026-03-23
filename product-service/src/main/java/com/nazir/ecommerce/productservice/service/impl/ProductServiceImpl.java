@@ -27,32 +27,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Product service — demonstrates Cache-Aside pattern with Spring Cache + Redis.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Cache-Aside (Lazy Loading) Pattern                     │
- * │                                                                          │
- * │  1. READ:  check cache → HIT: return fast   MISS: query DB → cache → return│
- * │  2. WRITE: update DB → update/evict cache                               │
- * │                                                                          │
- * │  @Cacheable("products")        → read-through                           │
- * │  @CachePut("products")         → write-through (always refresh cache)   │
- * │  @CacheEvict("products")       → evict on delete                        │
- * │  @Caching(evict = {...})       → evict multiple cache entries at once   │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Cache key design                                       │
- * │                                                                          │
- * │  "products"         → single product by ID                              │
- * │  "products_by_sku"  → single product by SKU                             │
- * │  "products_list"    → paginated lists (evicted on any write)            │
- * │                                                                          │
- * │  Cache TTL = 10 minutes (configured in CacheConfig).                    │
- * │  Stock quantities NOT cached because they change too frequently.        │
- * └──────────────────────────────────────────────────────────────────────────┘
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -61,8 +35,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository    productRepository;
     private final ProductMapper        productMapper;
     private final StockEventPublisher  eventPublisher;
-
-    // ─── Create ───────────────────────────────────────────────────────────────
 
     @Override
     @CacheEvict(value = "products_list", allEntries = true)
@@ -89,28 +61,18 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(saved);
     }
 
-    // ─── Read ─────────────────────────────────────────────────────────────────
-
-    /**
-     * LEARNING POINT — @Cacheable:
-     *   First call → cache miss → queries MongoDB → stores in Redis with TTL.
-     *   Subsequent calls → cache HIT → returned from Redis, MongoDB NOT queried.
-     *   unless = "#result == null" → don't cache null results.
-     */
     @Override
     @Cacheable(value = "products", key = "#id", unless = "#result == null")
     public ProductResponse getById(String id) {
         log.debug("Cache MISS for product id={}, querying MongoDB", id);
-        return productRepository.findById(id)
-                .map(productMapper::toResponse)
+        return productRepository.findById(id).map(productMapper::toResponse)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found: " + id));
     }
 
     @Override
     @Cacheable(value = "products_by_sku", key = "#sku", unless = "#result == null")
     public ProductResponse getBySku(String sku) {
-        return productRepository.findBySku(sku)
-                .map(productMapper::toResponse)
+        return productRepository.findBySku(sku).map(productMapper::toResponse)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with SKU: " + sku));
     }
 
@@ -125,33 +87,22 @@ public class ProductServiceImpl implements ProductService {
     @Cacheable(value = "products_list",
                key = "#category + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<ProductResponse> getByCategory(String category, Pageable pageable) {
-        return productRepository.findByCategoryAndStatus(
-                category, Product.ProductStatus.ACTIVE, pageable)
+        return productRepository.findByCategoryAndStatus(category, Product.ProductStatus.ACTIVE, pageable)
                 .map(productMapper::toResponse);
     }
 
     @Override
     // Search not cached — too many unique query permutations would pollute Redis
     public Page<ProductResponse> search(String query, Pageable pageable) {
-        return productRepository.searchActive(query, pageable)
-                .map(productMapper::toResponse);
+        return productRepository.searchActive(query, pageable).map(productMapper::toResponse);
     }
 
     @Override
     public Page<ProductResponse> getBySeller(String sellerId, Pageable pageable) {
-        return productRepository.findBySellerIdAndStatus(
-                sellerId, Product.ProductStatus.ACTIVE, pageable)
+        return productRepository.findBySellerIdAndStatus(sellerId, Product.ProductStatus.ACTIVE, pageable)
                 .map(productMapper::toResponse);
     }
 
-    // ─── Update ───────────────────────────────────────────────────────────────
-
-    /**
-     * LEARNING POINT — @CachePut:
-     *   Unlike @Cacheable, @CachePut ALWAYS executes the method and updates the cache.
-     *   Use it for writes so the cache reflects the new state immediately.
-     *   @Caching lets us evict multiple cache names in one annotation.
-     */
     @Override
     @Caching(
         put    = { @CachePut(value = "products", key = "#result.id") },
@@ -166,12 +117,7 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(saved);
     }
 
-    // ─── Delete ───────────────────────────────────────────────────────────────
 
-    /**
-     * Soft delete — sets status to DISCONTINUED.
-     * Never physically delete products (order history must remain accurate).
-     */
     @Override
     @Caching(evict = {
         @CacheEvict(value = "products",      key = "#id"),
@@ -183,8 +129,6 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         log.info("Product soft-deleted: id={}", id);
     }
-
-    // ─── Stock operations ─────────────────────────────────────────────────────
 
     @Override
     // Stock NOT cached — changes too frequently
@@ -200,27 +144,13 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    /**
-     * Reserve stock for a pending order.
-     *
-     * LEARNING POINT — Stock reservation pattern:
-     *   We DON'T decrement stockQuantity here. We only increment reservedQuantity.
-     *   availableStock = stockQuantity - reservedQuantity
-     *   This way stock is "held" for the order but not permanently gone yet.
-     *   If payment fails → releaseStock() frees the reservation.
-     *   If payment succeeds → confirmStockDeduction() permanently deducts.
-     *
-     * LEARNING POINT — @CacheEvict on stock operations:
-     *   We evict the product cache so subsequent getById() returns fresh stock data.
-     */
     @Override
     @CacheEvict(value = "products", key = "#productId")
     public synchronized void reserveStock(String productId, StockUpdateRequest request) {
         Product product = findEntityById(productId);
 
         if (product.getAvailableStock() < request.getQuantity()) {
-            throw new InsufficientStockException(
-                    String.format("Insufficient stock for product '%s'. Available: %d, Requested: %d",
+            throw new InsufficientStockException(String.format("Insufficient stock for product '%s'. Available: %d, Requested: %d",
                             product.getName(), product.getAvailableStock(), request.getQuantity()));
         }
 
@@ -228,8 +158,7 @@ public class ProductServiceImpl implements ProductService {
         product.setReservedQuantity(prev + request.getQuantity());
         productRepository.save(product);
 
-        log.info("Stock reserved: productId={}, qty={}, orderId={}",
-                productId, request.getQuantity(), request.getOrderId());
+        log.info("Stock reserved: productId={}, qty={}, orderId={}", productId, request.getQuantity(), request.getOrderId());
 
         eventPublisher.publish(StockEvent.builder()
                 .eventType(StockEvent.EventType.STOCK_RESERVED)
@@ -249,8 +178,7 @@ public class ProductServiceImpl implements ProductService {
         product.setReservedQuantity(Math.max(0, prev - request.getQuantity()));
         productRepository.save(product);
 
-        log.info("Stock released: productId={}, qty={}, orderId={}",
-                productId, request.getQuantity(), request.getOrderId());
+        log.info("Stock released: productId={}, qty={}, orderId={}", productId, request.getQuantity(), request.getOrderId());
 
         eventPublisher.publish(StockEvent.builder()
                 .eventType(StockEvent.EventType.STOCK_RELEASED)
@@ -298,7 +226,6 @@ public class ProductServiceImpl implements ProductService {
                 .build());
     }
 
-    // ─── Private helpers ──────────────────────────────────────────────────────
 
     private Product findEntityById(String id) {
         return productRepository.findById(id)

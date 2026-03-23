@@ -6,11 +6,11 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 /**
  * MongoDB configuration.
- *
- * LEARNING POINT — @EnableMongoAuditing:
- *   Required for @CreatedDate and @LastModifiedDate to be automatically
- *   populated by Spring Data MongoDB.
- *   Without this annotation those fields will always be null.
+ * <p>
+ * @EnableMongoAuditing:
+ * Required for @CreatedDate and @LastModifiedDate to be automatically
+ * populated by Spring Data MongoDB.
+ * Without this annotation those fields will always be null.
  */
 @Configuration
 @EnableMongoAuditing

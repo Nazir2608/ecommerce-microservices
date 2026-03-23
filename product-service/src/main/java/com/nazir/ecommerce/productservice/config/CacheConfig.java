@@ -18,19 +18,19 @@ import java.util.Map;
 
 /**
  * Redis cache configuration — TTL per cache name.
- *
- * LEARNING POINT — Why different TTLs?
- *   products        (single) → 10 min  — individual product pages, frequently read
- *   products_by_sku          → 10 min  — same data, different key
- *   products_list            →  5 min  — list pages change when new products added
- *
- *   Stock is NOT cached — it changes on every order.
- *   Too-long TTL → stale data. Too-short TTL → too many cache misses.
- *
- * LEARNING POINT — JSON serializer vs JDK serializer:
- *   Default Spring Cache uses JDK serialization (binary, not human-readable).
- *   We use GenericJackson2JsonRedisSerializer → human-readable JSON in Redis.
- *   You can inspect cached values with: redis-cli GET "products::abc123"
+ * <p>
+ * Why different TTLs?
+ * products        (single) → 10 min  — individual product pages, frequently read
+ * products_by_sku          → 10 min  — same data, different key
+ * products_list            →  5 min  — list pages change when new products added
+ * <p>
+ * Stock is NOT cached — it changes on every order.
+ * Too-long TTL → stale data. Too-short TTL → too many cache misses.
+ * <p>
+ * JSON serializer vs JDK serializer:
+ * Default Spring Cache uses JDK serialization (binary, not human-readable).
+ * We use GenericJackson2JsonRedisSerializer → human-readable JSON in Redis.
+ * You can inspect cached values with: redis-cli GET "products::abc123"
  */
 @Configuration
 public class CacheConfig {
@@ -52,9 +52,9 @@ public class CacheConfig {
                 .disableCachingNullValues();
 
         Map<String, RedisCacheConfiguration> configs = Map.of(
-                "products",        defaults.entryTtl(Duration.ofMinutes(10)),
+                "products", defaults.entryTtl(Duration.ofMinutes(10)),
                 "products_by_sku", defaults.entryTtl(Duration.ofMinutes(10)),
-                "products_list",   defaults.entryTtl(Duration.ofMinutes(5))
+                "products_list", defaults.entryTtl(Duration.ofMinutes(5))
         );
 
         return RedisCacheManager.builder(factory)

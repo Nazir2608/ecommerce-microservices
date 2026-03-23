@@ -19,18 +19,13 @@ public class StockEventPublisher {
 
     public void publish(StockEvent event) {
         // Key = productId → all stock events for same product land on same partition (ordering)
-        CompletableFuture<SendResult<String, StockEvent>> future =
-                kafkaTemplate.send(TOPIC, event.getProductId(), event);
+        CompletableFuture<SendResult<String, StockEvent>> future = kafkaTemplate.send(TOPIC, event.getProductId(), event);
 
         future.whenComplete((result, ex) -> {
             if (ex != null) {
-                log.error("[Kafka] FAILED to publish {} for productId={}: {}",
-                        event.getEventType(), event.getProductId(), ex.getMessage());
+                log.error("[Kafka] FAILED to publish {} for productId={}: {}", event.getEventType(), event.getProductId(), ex.getMessage());
             } else {
-                log.info("[Kafka] Published {} for productId={} → partition={} offset={}",
-                        event.getEventType(), event.getProductId(),
-                        result.getRecordMetadata().partition(),
-                        result.getRecordMetadata().offset());
+                log.info("[Kafka] Published {} for productId={} → partition={} offset={}", event.getEventType(), event.getProductId(), result.getRecordMetadata().partition(), result.getRecordMetadata().offset());
             }
         });
     }

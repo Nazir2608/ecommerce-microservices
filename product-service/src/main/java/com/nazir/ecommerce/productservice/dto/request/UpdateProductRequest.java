@@ -3,12 +3,19 @@ package com.nazir.ecommerce.productservice.dto.request;
 import com.nazir.ecommerce.productservice.model.Product;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/** All fields optional — service applies only non-null fields (partial update). */
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+/**
+ * All fields optional — service applies only non-null fields (partial update).
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UpdateProductRequest {
 
     @Size(max = 200)

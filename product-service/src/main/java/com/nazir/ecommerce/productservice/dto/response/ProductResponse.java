@@ -2,22 +2,18 @@ package com.nazir.ecommerce.productservice.dto.response;
 
 import com.nazir.ecommerce.productservice.model.Product;
 import lombok.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Product response DTO.
- *
- * LEARNING POINT — Serializable for Redis:
- *   When Spring Cache stores this in Redis using JdkSerializationRedisSerializer,
- *   the class MUST implement Serializable.
- *   We use Jackson JSON serializer instead (see CacheConfig), but implementing
- *   Serializable is still good practice for response DTOs that are cached.
- */
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProductResponse implements Serializable {
 
     private String id;

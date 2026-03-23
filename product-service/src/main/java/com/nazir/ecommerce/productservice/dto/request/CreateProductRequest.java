@@ -2,11 +2,16 @@ package com.nazir.ecommerce.productservice.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CreateProductRequest {
 
     @NotBlank(message = "Product name is required")
@@ -35,7 +40,9 @@ public class CreateProductRequest {
     @Size(max = 3, min = 3)
     private String currency;                 // ISO 4217: "USD", "INR", "EUR"
 
-    /** Flexible product-type attributes — no schema restrictions */
+    /**
+     * Flexible product-type attributes — no schema restrictions
+     */
     private Map<String, Object> attributes;
 
     private List<String> imageUrls;

@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Product REST controller.
- *
- * LEARNING POINT — Header-based auth propagation:
- *   The API Gateway validates the JWT and forwards X-Auth-User-Id.
- *   This service trusts that header — it never validates the JWT itself.
- *   This is the standard microservices pattern: auth at the perimeter.
+ * <p>
+ * Header-based auth propagation:
+ * The API Gateway validates the JWT and forwards X-Auth-User-Id.
+ * This service trusts that header — it never validates the JWT itself.
+ * This is the standard microservices pattern: auth at the perimeter.
  */
 @RestController
 @RequestMapping("/api/v1/products")
@@ -33,8 +33,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
-
-    // ── Public catalog endpoints ─────────────────────────────────────────────
 
     @GetMapping("/{id}")
     @Operation(summary = "Get product by ID (cached in Redis)")
@@ -50,11 +48,7 @@ public class ProductController {
 
     @GetMapping
     @Operation(summary = "List active products (paginated, optionally filtered by category)")
-    public ResponseEntity<ApiResponse<Page<ProductResponse>>> list(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String search,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> list(@RequestParam(required = false) String category, @RequestParam(required = false) String search, @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         Page<ProductResponse> page;
         if (search != null && !search.isBlank()) {
             page = productService.search(search, pageable);
@@ -70,10 +64,7 @@ public class ProductController {
 
     @PostMapping
     @Operation(summary = "Create product (SELLER/ADMIN)")
-    public ResponseEntity<ApiResponse<ProductResponse>> create(
-            @Valid @RequestBody CreateProductRequest request,
-            @RequestHeader("X-Auth-User-Id") String sellerId) {
-
+    public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody CreateProductRequest request, @RequestHeader("X-Auth-User-Id") String sellerId) {
         ProductResponse response = productService.create(request, sellerId);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Product created"));
@@ -81,10 +72,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update product (SELLER/ADMIN)")
-    public ResponseEntity<ApiResponse<ProductResponse>> update(
-            @PathVariable String id,
-            @Valid @RequestBody UpdateProductRequest request) {
-
+    public ResponseEntity<ApiResponse<ProductResponse>> update(@PathVariable String id, @Valid @RequestBody UpdateProductRequest request) {
         return ResponseEntity.ok(ApiResponse.success(productService.update(id, request), "Product updated"));
     }
 
@@ -97,10 +85,7 @@ public class ProductController {
 
     @GetMapping("/seller/my-products")
     @Operation(summary = "Get products by authenticated seller")
-    public ResponseEntity<ApiResponse<Page<ProductResponse>>> myProducts(
-            @RequestHeader("X-Auth-User-Id") String sellerId,
-            @PageableDefault(size = 20) Pageable pageable) {
-
+    public ResponseEntity<ApiResponse<Page<ProductResponse>>> myProducts(@RequestHeader("X-Auth-User-Id") String sellerId, @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(productService.getBySeller(sellerId, pageable)));
     }
 
@@ -114,30 +99,21 @@ public class ProductController {
 
     @PostMapping("/{productId}/reserve-stock")
     @Operation(summary = "Reserve stock for a pending order")
-    public ResponseEntity<ApiResponse<Void>> reserveStock(
-            @PathVariable String productId,
-            @Valid @RequestBody StockUpdateRequest request) {
-
+    public ResponseEntity<ApiResponse<Void>> reserveStock(@PathVariable String productId, @Valid @RequestBody StockUpdateRequest request) {
         productService.reserveStock(productId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Stock reserved"));
     }
 
     @PostMapping("/{productId}/release-stock")
     @Operation(summary = "Release reserved stock (on order cancel/payment fail)")
-    public ResponseEntity<ApiResponse<Void>> releaseStock(
-            @PathVariable String productId,
-            @Valid @RequestBody StockUpdateRequest request) {
-
+    public ResponseEntity<ApiResponse<Void>> releaseStock(@PathVariable String productId, @Valid @RequestBody StockUpdateRequest request) {
         productService.releaseStock(productId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Stock released"));
     }
 
     @PostMapping("/{productId}/confirm-stock")
     @Operation(summary = "Permanently deduct stock (on payment success)")
-    public ResponseEntity<ApiResponse<Void>> confirmStock(
-            @PathVariable String productId,
-            @Valid @RequestBody StockUpdateRequest request) {
-
+    public ResponseEntity<ApiResponse<Void>> confirmStock(@PathVariable String productId, @Valid @RequestBody StockUpdateRequest request) {
         productService.confirmStockDeduction(productId, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Stock deducted"));
     }
