@@ -29,8 +29,3 @@ Thumbs.db
 
 # ─── Test / Coverage ──────────────────────────────────────────────────────────
 /coverage
-<<<<<<< HEAD
-*.exec
-=======
-*.exec
->>>>>>> 2a5f64f (Initial commit for ecommerce microservices)
