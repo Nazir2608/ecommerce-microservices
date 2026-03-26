@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-/** Payload for POST /api/v1/users/me/change-password */
+/**
+ * Payload for POST /api/v1/users/me/change-password
+ */
 @Getter
 @Setter
 @NoArgsConstructor

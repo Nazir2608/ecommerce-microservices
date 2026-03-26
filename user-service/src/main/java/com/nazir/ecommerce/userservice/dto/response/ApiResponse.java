@@ -7,16 +7,6 @@ import java.time.LocalDateTime;
 
 /**
  * Generic API response envelope — wraps all responses in a consistent shape.
- *
- * Success:  { success: true,  data: {...},  message: "User registered" }
- * Error:    { success: false, data: null,   message: "Email already exists" }
- *
- * LEARNING POINT — Why use an envelope:
- *   Clients (mobile / frontend) know exactly where the data is.
- *   They can check `success` first before processing `data`.
- *   Easier to add metadata (pagination, request IDs) without breaking clients.
- *
- * @param <T> the type of the data payload
  */
 @Getter
 @Setter
@@ -33,7 +23,7 @@ public class ApiResponse<T> {
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // ─── Factory methods ──────────────────────────────────────────────────────
+    // ─── Factory methods ─────
 
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()

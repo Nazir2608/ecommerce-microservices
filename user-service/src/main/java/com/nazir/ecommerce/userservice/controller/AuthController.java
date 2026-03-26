@@ -21,16 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Authentication endpoints — all public (no JWT required).
- *
- * Base path: /api/v1/auth
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — @AuthenticationPrincipal                               │
- * │                                                                          │
- * │  Spring Security populates the SecurityContext with the UserDetails      │
- * │  object after JWT validation. @AuthenticationPrincipal injects it        │
- * │  directly into the controller method — no SecurityContextHolder boilerplate. │
- * └──────────────────────────────────────────────────────────────────────────┘
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -41,61 +31,39 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // ─── POST /api/v1/auth/register ───────────────────────────────────────────
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates account and returns JWT tokens")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-
         AuthResponse response = authService.register(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Registration successful"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Registration successful"));
     }
-
-    // ─── POST /api/v1/auth/login ──────────────────────────────────────────────
 
     @PostMapping("/login")
     @Operation(summary = "Authenticate user", description = "Returns access token and refresh token")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
-    // ─── POST /api/v1/auth/refresh ────────────────────────────────────────────
-
     @PostMapping("/refresh")
-    @Operation(
-        summary = "Refresh access token",
-        description = "Exchange a valid refresh token for a new access token. " +
-                      "The old refresh token is invalidated (rotation)."
+    @Operation(summary = "Refresh access token", description = "Exchange a valid refresh token for a new access token. " +
+            "The old refresh token is invalidated (rotation)."
     )
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-
         AuthResponse response = authService.refresh(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Token refreshed"));
     }
 
-    // ─── POST /api/v1/auth/logout ─────────────────────────────────────────────
-
     @PostMapping("/logout")
-    @Operation(
-        summary = "Logout",
-        description = "Blacklists the current access token and invalidates the refresh token"
-    )
+    @Operation(summary = "Logout", description = "Blacklists the current access token and invalidates the refresh token")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, @AuthenticationPrincipal UserDetails userDetails) {
-
         // Extract raw token from header so we can blacklist it
         String token = extractBearerToken(request);
         String email = userDetails.getUsername(); // Spring Security "username" = email
-
         authService.logout(token, email);
-
         return ResponseEntity.ok(ApiResponse.success(null, "Logged out successfully"));
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private String extractBearerToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");

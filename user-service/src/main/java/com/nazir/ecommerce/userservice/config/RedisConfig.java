@@ -13,32 +13,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Redis configuration.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — What we store in Redis (user-service)                  │
- * │                                                                          │
- * │  Key pattern               │ Value        │ TTL                          │
- * │  ─────────────────────────────────────────────────────                   │
- * │  refresh_token:{userId}    │ token string │ 7 days                      │
- * │  blacklist:{accessToken}   │ "1"          │ remaining token TTL          │
- * │                                                                          │
- * │  Why Redis and not the DB?                                               │
- * │  • TTL support — Redis auto-deletes expired keys. No cleanup cron.       │
- * │  • In-memory — O(1) lookup, <1ms latency. Perfect for per-request check. │
- * │  • Atomic setIfAbsent — prevents race conditions on duplicate events.    │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — StringRedisTemplate vs RedisTemplate                   │
- * │                                                                          │
- * │  StringRedisTemplate: keys and values are always plain strings.          │
- * │    → Use for simple string data (tokens, flags, counters).               │
- * │                                                                          │
- * │  RedisTemplate<String, Object>: values serialized as JSON.               │
- * │    → Use for complex objects (DTOs, maps).                               │
- * │                                                                          │
- * │  We use StringRedisTemplate for token storage (tokens are strings).      │
- * └──────────────────────────────────────────────────────────────────────────┘
  */
 @Configuration
 public class RedisConfig {

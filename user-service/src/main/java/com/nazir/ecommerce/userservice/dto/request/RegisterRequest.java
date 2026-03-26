@@ -5,12 +5,6 @@ import lombok.*;
 
 /**
  * Payload for POST /api/v1/auth/register
- *
- * LEARNING POINT — Why separate DTOs from entities:
- *   • Entities have @Column, @GeneratedValue, audit fields — not for external callers.
- *   • DTOs carry only what the client needs to send/receive.
- *   • Decouples API contract from DB schema — you can change one without the other.
- *   • Prevents "mass assignment" attacks (client can't set roles = ADMIN by sending JSON).
  */
 @Getter
 @Setter

@@ -6,7 +6,7 @@ import lombok.*;
 
 /**
  * Payload for PATCH /api/v1/users/me
- *
+ * <p>
  * All fields are optional — client sends only what it wants to change.
  * The service layer applies only non-null fields (partial update).
  */
