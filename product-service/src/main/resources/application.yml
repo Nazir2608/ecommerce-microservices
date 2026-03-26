@@ -1,11 +1,69 @@
 spring:
   application:
     name: product-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
+
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongouser:mongopassword@localhost:27017/productdb?authSource=admin}
+      auto-index-creation: true    # Creates @Indexed and @CompoundIndex on startup
+
+    # ── Redis ──────────────────────────────────────────────────────────────────
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+          min-idle: 1
+
+  # ── Kafka Producer ────────────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
 server:
-  port: 0  # random port — placeholder until Phase 2
+  port: ${SERVER_PORT:8085}
+
+# ── Eureka ────────────────────────────────────────────────────────────────────
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+    health-check-url-path: /actuator/health
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+
+# ── SpringDoc ─────────────────────────────────────────────────────────────────
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG
+    org.springframework.cache: DEBUG   # shows cache hits/misses
