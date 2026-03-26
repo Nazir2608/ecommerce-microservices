@@ -15,38 +15,30 @@ import java.util.stream.Collectors;
 
 /**
  * JWT utility — creates and validates access + refresh tokens.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — JWT structure                                          │
- * │                                                                          │
- * │  A JWT has three Base64URL-encoded parts: header.payload.signature       │
- * │                                                                          │
- * │  header:   { "alg": "HS256", "typ": "JWT" }                             │
- * │  payload:  { "sub": "uuid", "email": "...", "roles": "...", "exp": ... } │
- * │  signature: HMACSHA256(base64(header) + "." + base64(payload), secret)  │
- * │                                                                          │
- * │  The payload is BASE64 encoded — NOT encrypted.                          │
- * │  Anyone can decode and read it. Never put passwords or secrets in it.    │
- * │                                                                          │
- * │  The SIGNATURE ensures the token was not tampered with.                  │
- * │  A server with the same secret can verify integrity in ~1ms with no DB.  │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Signing algorithm (HS256 vs RS256)                     │
- * │                                                                          │
- * │  HS256 (HMAC-SHA256): symmetric — same secret signs and verifies.        │
- * │    + Simple, fast                                                        │
- * │    - All services that verify must know the secret                       │
- * │                                                                          │
- * │  RS256 (RSA-SHA256):  asymmetric — private key signs, public key verifies│
- * │    + Only auth service has the private key                               │
- * │    + Other services verify with the public key (safe to share)           │
- * │    - Slower, more complex setup                                          │
- * │                                                                          │
- * │  For this project we use HS256 (simpler to start).                       │
- * │  In production with many services, consider RS256.                       │
- * └──────────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * — JWT structure
+ * A JWT has three Base64URL-encoded parts: header.payload.signature
+ * header:   { "alg": "HS256", "typ": "JWT" }
+ * payload:  { "sub": "uuid", "email": "...", "roles": "...", "exp": ... }
+ * signature: HMACSHA256(base64(header) + "." + base64(payload), secret)
+ * The payload is BASE64 encoded — NOT encrypted.
+ * Anyone can decode and read it. Never put passwords or secrets in it.
+ * The SIGNATURE ensures the token was not tampered with.
+ * A server with the same secret can verify integrity in ~1ms with no DB.
+ * <p>
+ * — Signing algorithm (HS256 vs RS256)
+ * <p>
+ * HS256 (HMAC-SHA256): symmetric — same secret signs and verifies.
+ * + Simple, fast
+ * - All services that verify must know the secret
+ * <p>
+ * RS256 (RSA-SHA256):  asymmetric — private key signs, public key verifies
+ * + Only auth service has the private key
+ * + Other services verify with the public key (safe to share)
+ * - Slower, more complex setup
+ * <p>
+ * For this project we use HS256 (simpler to start).
+ * In production with many services, consider RS256.
  */
 @Component
 @Slf4j
@@ -69,21 +61,14 @@ public class JwtTokenProvider {
      * to downstream services, so they don't need to re-query the DB.
      */
     public String generateAccessToken(User user) {
-        String roles = user.getRoles()
-                .stream()
-                .map(User.Role::name)
-                .collect(Collectors.joining(","));
+        String roles = user.getRoles().stream().map(User.Role::name).collect(Collectors.joining(","));
 
-        return buildToken(
-                user.getId().toString(),
-                Map.of(
-                        "email",    user.getEmail(),
+        return buildToken(user.getId().toString(), Map.of(
+                        "email", user.getEmail(),
                         "username", user.getUsername(),
-                        "roles",    roles,
-                        "type",     "access"
-                ),
-                accessTokenExpiryMs
-        );
+                        "roles", roles,
+                        "type", "access"),
+                accessTokenExpiryMs);
     }
 
     /**
@@ -92,11 +77,7 @@ public class JwtTokenProvider {
      * The actual user info is fetched from DB when the refresh token is used.
      */
     public String generateRefreshToken(User user) {
-        return buildToken(
-                user.getId().toString(),
-                Map.of("type", "refresh"),
-                refreshTokenExpiryMs
-        );
+        return buildToken(user.getId().toString(), Map.of("type", "refresh"), refreshTokenExpiryMs);
     }
 
     // ─── Token validation ─────────────────────────────────────────────────────
@@ -153,8 +134,13 @@ public class JwtTokenProvider {
 
     // ─── Getters ──────────────────────────────────────────────────────────────
 
-    public long getAccessTokenExpiryMs()  { return accessTokenExpiryMs; }
-    public long getRefreshTokenExpiryMs() { return refreshTokenExpiryMs; }
+    public long getAccessTokenExpiryMs() {
+        return accessTokenExpiryMs;
+    }
+
+    public long getRefreshTokenExpiryMs() {
+        return refreshTokenExpiryMs;
+    }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
 
@@ -175,3 +161,4 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 }
+

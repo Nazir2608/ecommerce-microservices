@@ -11,22 +11,20 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Publishes {@link UserEvent}s to the {@code user.events} Kafka topic.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Async Kafka send                                       │
- * │                                                                          │
- * │  kafkaTemplate.send() is non-blocking — it returns a CompletableFuture. │
- * │  We attach callbacks via whenComplete() to log success/failure.          │
- * │                                                                          │
- * │  We do NOT block the calling thread waiting for Kafka acknowledgment.   │
- * │  If the DB write succeeded but Kafka fails, the user is still created   │
- * │  but the welcome email won't be sent.                                   │
- * │                                                                          │
- * │  Production solution: Transactional Outbox Pattern                       │
- * │    Save event to a DB table in the same transaction as the User.         │
- * │    A background process reads the table and publishes to Kafka.          │
- * │    This guarantees exactly-once publishing.                              │
- * └──────────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * Async Kafka send
+ * <p>
+ * kafkaTemplate.send() is non-blocking — it returns a CompletableFuture.
+ * We attach callbacks via whenComplete() to log success/failure.
+ * <p>
+ * We do NOT block the calling thread waiting for Kafka acknowledgment.
+ * If the DB write succeeded but Kafka fails, the user is still created
+ * but the welcome email won't be sent.
+ * <p>
+ * Production solution: Transactional Outbox Pattern
+ * Save event to a DB table in the same transaction as the User.
+ * A background process reads the table and publishes to Kafka.
+ * This guarantees exactly-once publishing.
  */
 @Component
 @RequiredArgsConstructor
@@ -57,7 +55,6 @@ public class UserEventPublisher {
         publish(user, UserEvent.EventType.PASSWORD_CHANGED);
     }
 
-    // ─── Private ──────────────────────────────────────────────────────────────
 
     private void publish(User user, UserEvent.EventType type) {
         UserEvent event = UserEvent.builder()
@@ -70,8 +67,7 @@ public class UserEventPublisher {
                 .build();
 
         // Key = userId → all events for same user land on same partition (ordering guaranteed)
-        CompletableFuture<SendResult<String, UserEvent>> future =
-                kafkaTemplate.send(TOPIC, user.getId().toString(), event);
+        CompletableFuture<SendResult<String, UserEvent>> future = kafkaTemplate.send(TOPIC, user.getId().toString(), event);
 
         future.whenComplete((result, ex) -> {
             if (ex != null) {
@@ -79,12 +75,9 @@ public class UserEventPublisher {
                         type, user.getId(), ex.getMessage());
                 // TODO: store in outbox table for retry
             } else {
-                log.info("[Kafka] Published {} for userId={} → partition={} offset={}",
-                        type,
-                        user.getId(),
-                        result.getRecordMetadata().partition(),
-                        result.getRecordMetadata().offset());
+                log.info("[Kafka] Published {} for userId={} → partition={} offset={}", type, user.getId(), result.getRecordMetadata().partition(), result.getRecordMetadata().offset());
             }
         });
     }
 }
+

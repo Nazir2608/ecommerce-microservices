@@ -1,5 +1,3 @@
--- V2__seed_admin_user.sql
---
 -- Seed a default admin user for development.
 -- Password: Admin@12345  (BCrypt hash below)
 -- IMPORTANT: Change this password immediately in any non-local environment.
