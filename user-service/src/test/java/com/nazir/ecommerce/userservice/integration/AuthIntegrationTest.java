@@ -28,28 +28,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * End-to-end integration test — full application context with real containers.
+ * <p>
+ * — Integration test vs Unit test:
+ * Unit test:       ~10ms, mocks dependencies, tests one class in isolation
+ * Integration test: ~10-30s, real DB + Redis + Kafka, tests the full flow
+ * <p>
+ * Strategy: write many fast unit tests, few slow integration tests.
+ * Integration tests verify that all the wiring is correct end-to-end.
+ * <p>
+ * — @SpringBootTest(webEnvironment = RANDOM_PORT):
+ * Starts the FULL Spring application context on a random port.
+ * With @AutoConfigureMockMvc it exposes MockMvc for testing without
+ * making real HTTP connections (request goes through the filter chain).
+ * <p>
+ * — Testcontainers with 3 containers:
+ * Each @Container is started once per test class (class-level lifecycle).
  *
- * LEARNING POINT — Integration test vs Unit test:
- *   Unit test:       ~10ms, mocks dependencies, tests one class in isolation
- *   Integration test: ~10-30s, real DB + Redis + Kafka, tests the full flow
- *
- *   Strategy: write many fast unit tests, few slow integration tests.
- *   Integration tests verify that all the wiring is correct end-to-end.
- *
- * LEARNING POINT — @SpringBootTest(webEnvironment = RANDOM_PORT):
- *   Starts the FULL Spring application context on a random port.
- *   With @AutoConfigureMockMvc it exposes MockMvc for testing without
- *   making real HTTP connections (request goes through the filter chain).
- *
- * LEARNING POINT — Testcontainers with 3 containers:
- *   Each @Container is started once per test class (class-level lifecycle).
- *   @DynamicPropertySource injects each container's coordinates into Spring
- *   before the ApplicationContext initialises.
- *
- * LEARNING POINT — @TestMethodOrder + @Order:
- *   Integration tests sometimes have dependencies (login needs a registered user).
- *   @TestMethodOrder(MethodOrderer.OrderAnnotation.class) enforces execution order.
- *   This is acceptable for integration tests (not for unit tests).
+ * @DynamicPropertySource injects each container's coordinates into Spring
+ * before the ApplicationContext initialises.
+ * <p>
+ * — @TestMethodOrder + @Order:
+ * Integration tests sometimes have dependencies (login needs a registered user).
+ * @TestMethodOrder(MethodOrderer.OrderAnnotation.class) enforces execution order.
+ * This is acceptable for integration tests (not for unit tests).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -58,8 +59,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Auth Integration Tests")
 class AuthIntegrationTest {
-
-    // ─── Testcontainers ───────────────────────────────────────────────────────
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -73,13 +72,12 @@ class AuthIntegrationTest {
             .withCommand("redis-server", "--requirepass", "testredis");
 
     @Container
-    static KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.5.3"));
+    static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.3"));
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         // PostgreSQL
-        registry.add("spring.datasource.url",      postgres::getJdbcUrl);
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
 
@@ -98,8 +96,10 @@ class AuthIntegrationTest {
 
     // ─── Test dependencies ────────────────────────────────────────────────────
 
-    @Autowired private MockMvc      mvc;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private MockMvc mvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // Shared state across ordered tests
     private static String accessToken;
@@ -132,7 +132,7 @@ class AuthIntegrationTest {
 
         // Save tokens for subsequent tests
         var response = objectMapper.readTree(result.getResponse().getContentAsString());
-        accessToken  = response.at("/data/accessToken").asText();
+        accessToken = response.at("/data/accessToken").asText();
         refreshToken = response.at("/data/refreshToken").asText();
 
         assertThat(accessToken).isNotEmpty();
