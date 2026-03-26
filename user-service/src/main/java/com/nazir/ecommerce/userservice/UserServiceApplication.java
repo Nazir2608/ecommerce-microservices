@@ -30,7 +30,6 @@ import org.springframework.kafka.annotation.EnableKafka;
 @EnableDiscoveryClient   // registers this instance in Eureka
 @EnableKafka             // activates Kafka listener + producer infrastructure
 public class UserServiceApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApplication.class, args);
     }

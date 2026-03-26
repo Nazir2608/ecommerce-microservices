@@ -29,39 +29,40 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Web layer tests for AuthController using MockMvc.
- *
- * LEARNING POINT — @WebMvcTest:
- *   Loads ONLY the web layer: controllers, filters, exception handlers.
- *   Does NOT load: @Service, @Repository, real DB, real Kafka.
- *   All @Service beans must be @MockBean — MockMvc intercepts calls.
- *   Tests run in ~500ms (vs 10-30s for @SpringBootTest).
- *
- * LEARNING POINT — What to test at the controller layer:
- *   ✓ Request deserialization (does JSON map to DTO?)
- *   ✓ Validation (does @Valid reject bad input?)
- *   ✓ HTTP status codes (201 Created, 400 Bad Request, etc.)
- *   ✓ Response JSON structure (correct fields, correct envelope)
- *   ✓ Security (unauthenticated → 401, wrong role → 403)
- *   ✗ Business logic (that's tested in service unit tests)
- *
- * LEARNING POINT — @WithMockUser:
- *   Injects a fake authenticated user into SecurityContextHolder.
- *   Allows testing secured endpoints without going through full JWT flow.
+ * <p>
+ * — @WebMvcTest:
+ * Loads ONLY the web layer: controllers, filters, exception handlers.
+ * Does NOT load: @Service, @Repository, real DB, real Kafka.
+ * All @Service beans must be @MockBean — MockMvc intercepts calls.
+ * Tests run in ~500ms (vs 10-30s for @SpringBootTest).
+ * <p>
+ * — What to test at the controller layer:
+ * ✓ Request deserialization (does JSON map to DTO?)
+ * ✓ Validation (does @Valid reject bad input?)
+ * ✓ HTTP status codes (201 Created, 400 Bad Request, etc.)
+ * ✓ Response JSON structure (correct fields, correct envelope)
+ * ✓ Security (unauthenticated → 401, wrong role → 403)
+ * ✗ Business logic (that's tested in service unit tests)
+ * <p>
+ * — @WithMockUser:
+ * Injects a fake authenticated user into SecurityContextHolder.
+ * Allows testing secured endpoints without going through full JWT flow.
  */
 @WebMvcTest(AuthController.class)
 @ActiveProfiles("test")
 @DisplayName("AuthController")
 class AuthControllerTest {
 
-    @Autowired private MockMvc       mvc;
-    @Autowired private ObjectMapper  objectMapper;
+    @Autowired
+    private MockMvc mvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @MockBean  private AuthService   authService;
-
-    // ─── Fixtures ─────────────────────────────────────────────────────────────
+    @MockBean
+    private AuthService authService;
 
     private static final String REGISTER_URL = "/api/v1/auth/register";
-    private static final String LOGIN_URL    = "/api/v1/auth/login";
+    private static final String LOGIN_URL = "/api/v1/auth/login";
 
     private RegisterRequest validRegisterRequest() {
         return RegisterRequest.builder()
@@ -87,8 +88,6 @@ class AuthControllerTest {
                 .build();
     }
 
-    // ─── POST /api/v1/auth/register ───────────────────────────────────────────
-
     @Nested
     @DisplayName("POST /api/v1/auth/register")
     class RegisterEndpointTests {
@@ -96,8 +95,7 @@ class AuthControllerTest {
         @Test
         @DisplayName("should return 201 and auth response on successful registration")
         void register_success() throws Exception {
-            given(authService.register(any(RegisterRequest.class)))
-                    .willReturn(sampleAuthResponse());
+            given(authService.register(any(RegisterRequest.class))).willReturn(sampleAuthResponse());
 
             mvc.perform(post(REGISTER_URL)
                             .with(csrf())
@@ -169,8 +167,6 @@ class AuthControllerTest {
         }
     }
 
-    // ─── POST /api/v1/auth/login ──────────────────────────────────────────────
-
     @Nested
     @DisplayName("POST /api/v1/auth/login")
     class LoginEndpointTests {
@@ -202,7 +198,6 @@ class AuthControllerTest {
         }
     }
 
-    // ─── POST /api/v1/auth/logout ─────────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/v1/auth/logout")

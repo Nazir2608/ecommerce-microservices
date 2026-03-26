@@ -12,36 +12,32 @@ import java.util.UUID;
 
 /**
  * User — aggregate root for the user-service bounded context.
- *
- * ┌─────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Database-per-Service pattern                      │
- * │                                                                     │
- * │  This entity maps to the "userdb" PostgreSQL database.              │
- * │  No other service has direct access to this schema.                 │
- * │  Other services get user data via:                                  │
- * │    a) Feign HTTP call  → GET /api/v1/users/{id}                     │
- * │    b) Kafka event      → user.events topic (denormalized snapshot)  │
- * └─────────────────────────────────────────────────────────────────────┘
- *
- * ┌─────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — UUID as primary key                               │
- * │                                                                     │
- * │  UUID vs auto-increment integer:                                    │
- * │  + UUID is globally unique across services — no collisions when     │
- * │    merging or migrating data                                        │
- * │  + Safe to expose in APIs (no sequential enumeration attacks)       │
- * │  - Larger storage (16 bytes vs 8 bytes)                             │
- * │  - Slightly slower index scans (random inserts → page splits)       │
- * └─────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * LDatabase-per-Service pattern
+ * <p>
+ * This entity maps to the "userdb" PostgreSQL database.
+ * No other service has direct access to this schema.
+ * Other services get user data via:
+ * a) Feign HTTP call  → GET /api/v1/users/{id}
+ * b) Kafka event      → user.events topic (denormalized snapshot)
+ * <p>
+ *  UUID as primary key
+ * <p>
+ * UUID vs auto-increment integer:
+ * + UUID is globally unique across services — no collisions when
+ * merging or migrating data
+ * + Safe to expose in APIs (no sequential enumeration attacks)
+ * - Larger storage (16 bytes vs 8 bytes)
+ * - Slightly slower index scans (random inserts → page splits)
  */
 @Entity
 @Table(
-    name = "users",
-    indexes = {
-        @Index(name = "idx_users_email",    columnList = "email",    unique = true),
-        @Index(name = "idx_users_username", columnList = "username", unique = true),
-        @Index(name = "idx_users_status",   columnList = "status")
-    }
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email", unique = true),
+                @Index(name = "idx_users_username", columnList = "username", unique = true),
+                @Index(name = "idx_users_status", columnList = "status")
+        }
 )
 @Getter
 @Setter
@@ -89,18 +85,15 @@ public class User {
 
     /**
      * Roles determine what endpoints a user can access (RBAC).
-     *
-     * LEARNING POINT — @ElementCollection:
-     *   Stores the collection in a separate join table (user_roles).
-     *   Simpler than a full @ManyToMany entity; works well when the
-     *   collection is always loaded with the parent and never queried
-     *   standalone. For complex permission systems, model Role as an entity.
+     * <p>
+     * — @ElementCollection:
+     * Stores the collection in a separate join table (user_roles).
+     * Simpler than a full @ManyToMany entity; works well when the
+     * collection is always loaded with the parent and never queried
+     * standalone. For complex permission systems, model Role as an entity.
      */
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id")
-    )
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 30)
     @Builder.Default
@@ -114,9 +107,9 @@ public class User {
     private String profileImageUrl;
 
     /**
-     * LEARNING POINT — @CreationTimestamp / @UpdateTimestamp:
-     *   Hibernate automatically sets these. No need to set them manually.
-     *   updatable = false on createdAt ensures it's never overwritten.
+     * — @CreationTimestamp / @UpdateTimestamp:
+     * Hibernate automatically sets these. No need to set them manually.
+     * updatable = false on createdAt ensures it's never overwritten.
      */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -138,12 +131,16 @@ public class User {
 
     // ─── Domain helpers ───────────────────────────────────────────────────────
 
-    /** True if the account is locked due to too many failed login attempts. */
+    /**
+     * True if the account is locked due to too many failed login attempts.
+     */
     public boolean isAccountLocked() {
         return lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now());
     }
 
-    /** Increment failed attempts and lock after 5 failures (15-minute lock). */
+    /**
+     * Increment failed attempts and lock after 5 failures (15-minute lock).
+     */
     public void recordFailedLogin() {
         this.failedLoginAttempts++;
         if (this.failedLoginAttempts >= 5) {
@@ -151,7 +148,9 @@ public class User {
         }
     }
 
-    /** Clear failed attempts on successful login. */
+    /**
+     * Clear failed attempts on successful login.
+     */
     public void recordSuccessfulLogin() {
         this.failedLoginAttempts = 0;
         this.lockedUntil = null;
@@ -173,3 +172,4 @@ public class User {
         ROLE_ADMIN
     }
 }
+

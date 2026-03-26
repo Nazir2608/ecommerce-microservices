@@ -20,25 +20,23 @@ import java.io.IOException;
 
 /**
  * Stateless JWT authentication filter — runs on every HTTP request.
- *
- * LEARNING POINT — OncePerRequestFilter:
- *   Guaranteed to execute exactly once per request, even if a request
- *   is dispatched multiple times internally (e.g. forward/include).
- *
- * LEARNING POINT — filter execution order:
- *   Spring Security has a filter chain. This filter runs BEFORE
- *   the authorization check. If the JWT is valid, it sets the
- *   SecurityContext so the authorization check has the user's roles.
- *
- * LEARNING POINT — Token blacklist check:
- *   Even a valid JWT (correct signature, not expired) can be blacklisted
- *   in Redis after the user logged out. We check the blacklist on every request.
- *   The key is "blacklist:<token>" and it expires when the token would have expired.
- *
- * ┌──────────────────────────────────────────────────────────────────────┐
- * │  Request flow:                                                       │
- * │  Extract token → validate signature → check blacklist → set context  │
- * └──────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * — OncePerRequestFilter:
+ * Guaranteed to execute exactly once per request, even if a request
+ * is dispatched multiple times internally (e.g. forward/include).
+ * <p>
+ * — filter execution order:
+ * Spring Security has a filter chain. This filter runs BEFORE
+ * the authorization check. If the JWT is valid, it sets the
+ * SecurityContext so the authorization check has the user's roles.
+ * <p>
+ * — Token blacklist check:
+ * Even a valid JWT (correct signature, not expired) can be blacklisted
+ * in Redis after the user logged out. We check the blacklist on every request.
+ * The key is "blacklist:<token>" and it expires when the token would have expired.
+ * <p>
+ * Request flow:
+ * Extract token → validate signature → check blacklist → set context
  */
 @Component
 @RequiredArgsConstructor
@@ -53,12 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
-
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         // 1. Extract token from Authorization header
         String token = extractToken(request);
 
@@ -97,15 +90,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // Set in SecurityContext — downstream code can call
                 // SecurityContextHolder.getContext().getAuthentication() to get user info
@@ -119,7 +105,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /** Extract "Bearer <token>" from Authorization header. Returns null if absent. */
+    /**
+     * Extract "Bearer <token>" from Authorization header. Returns null if absent.
+     */
     private String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith(BEARER_PREFIX)) {
@@ -129,8 +117,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isBlacklisted(String token) {
-        return Boolean.TRUE.equals(
-                redisTemplate.hasKey(BLACKLIST_PREFIX + token)
-        );
+        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
     }
 }

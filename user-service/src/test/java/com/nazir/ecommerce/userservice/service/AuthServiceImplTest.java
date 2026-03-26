@@ -38,39 +38,48 @@ import static org.mockito.BDDMockito.*;
 
 /**
  * Unit tests for AuthServiceImpl.
+ * <p>
+ * — Unit test strategy:
+ * These tests isolate AuthServiceImpl from its dependencies using Mockito mocks.
+ * We test business logic only — no Spring context, no real DB, no real Redis.
+ * Each test runs in milliseconds.
+ * <p>
+ * — @ExtendWith(MockitoExtension.class):
+ * Activates Mockito annotations (@Mock, @InjectMocks) without needing
  *
- * LEARNING POINT — Unit test strategy:
- *   These tests isolate AuthServiceImpl from its dependencies using Mockito mocks.
- *   We test business logic only — no Spring context, no real DB, no real Redis.
- *   Each test runs in milliseconds.
- *
- * LEARNING POINT — @ExtendWith(MockitoExtension.class):
- *   Activates Mockito annotations (@Mock, @InjectMocks) without needing
- *   @SpringBootTest. Much faster than loading the full application context.
- *
- * LEARNING POINT — BDD-style (Given/When/Then):
- *   given(...).willReturn(...)  → setup mock behaviour
- *   when(...)                   → call the method under test
- *   then(...)                   → assert the result
- *   BDDMockito reads as a specification, not as implementation.
- *
- * LEARNING POINT — @Nested:
- *   Groups tests by the method they test. When the test report shows
- *   "register > should throw when email already taken", the context is clear.
+ * @SpringBootTest. Much faster than loading the full application context.
+ * <p>
+ * — BDD-style (Given/When/Then):
+ * given(...).willReturn(...)  → setup mock behaviour
+ * when(...)                   → call the method under test
+ * then(...)                   → assert the result
+ * BDDMockito reads as a specification, not as implementation.
+ * <p>
+ * — @Nested:
+ * Groups tests by the method they test. When the test report shows
+ * "register > should throw when email already taken", the context is clear.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthServiceImpl")
 class AuthServiceImplTest {
 
     // ─── Mocks ────────────────────────────────────────────────────────────────
-    @Mock private UserRepository       userRepository;
-    @Mock private PasswordEncoder      passwordEncoder;
-    @Mock private JwtTokenProvider     jwtProvider;
-    @Mock private AuthenticationManager authManager;
-    @Mock private StringRedisTemplate  redis;
-    @Mock private ValueOperations<String, String> valueOps;  // returned by redis.opsForValue()
-    @Mock private UserMapper           userMapper;
-    @Mock private UserEventPublisher   eventPublisher;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private JwtTokenProvider jwtProvider;
+    @Mock
+    private AuthenticationManager authManager;
+    @Mock
+    private StringRedisTemplate redis;
+    @Mock
+    private ValueOperations<String, String> valueOps;  // returned by redis.opsForValue()
+    @Mock
+    private UserMapper userMapper;
+    @Mock
+    private UserEventPublisher eventPublisher;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -208,8 +217,8 @@ class AuthServiceImplTest {
             // Verify AuthManager was called with correct credentials
             then(authManager).should().authenticate(
                     argThat(auth ->
-                        auth.getPrincipal().equals("nazir@example.com") &&
-                        auth.getCredentials().equals("Test@12345")
+                            auth.getPrincipal().equals("nazir@example.com") &&
+                                    auth.getCredentials().equals("Test@12345")
                     )
             );
 

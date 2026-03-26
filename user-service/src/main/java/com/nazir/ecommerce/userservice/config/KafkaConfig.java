@@ -16,34 +16,6 @@ import java.util.Map;
 
 /**
  * Kafka producer configuration for user-service.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Kafka producer acknowledgment modes (acks)             │
- * │                                                                          │
- * │  acks=0  → Fire and forget. No confirmation. Fastest, but data loss risk.│
- * │  acks=1  → Leader broker acknowledges. Fast, mild risk if leader crashes. │
- * │  acks=all→ All in-sync replicas (ISR) acknowledge. Slowest, zero loss.  │
- * │                                                                          │
- * │  For user events (registration email, audit log) we use acks=all.        │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Idempotent producer (enable.idempotence=true)          │
- * │                                                                          │
- * │  Without idempotence: a network retry can produce duplicate messages.    │
- * │  With idempotence: Kafka assigns a sequence number per producer session. │
- * │  Duplicate sends with the same sequence → broker deduplicates.           │
- * │  Requires: acks=all, retries >= 1.                                       │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — Message key selection                                  │
- * │                                                                          │
- * │  We use userId as the message key.                                       │
- * │  Kafka routes messages with the same key to the same partition.          │
- * │  → All events for a given user are ordered chronologically.              │
- * │  → notification-service processes events in the correct order per user.  │
- * └──────────────────────────────────────────────────────────────────────────┘
  */
 @Configuration
 public class KafkaConfig {

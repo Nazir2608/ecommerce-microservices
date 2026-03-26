@@ -9,11 +9,6 @@ import java.util.UUID;
 
 /**
  * Response DTO for a single user — returned by profile and admin endpoints.
- *
- * LEARNING POINT — What to exclude from response DTOs:
- *   • password   → NEVER
- *   • internal audit fields like failedLoginAttempts → omit from public API
- *   • lockedUntil → omit (don't tell attackers the lock duration)
  */
 @Getter
 @Setter

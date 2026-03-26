@@ -15,21 +15,19 @@ import java.util.UUID;
 
 /**
  * Spring Data JPA repository for the User aggregate.
- *
- * LEARNING POINT — Spring Data JPA method naming convention:
- *   findBy{Field}         → SELECT * FROM users WHERE field = ?
- *   existsBy{Field}       → SELECT COUNT(*) > 0 ...
- *   findBy{A}And{B}       → WHERE a = ? AND b = ?
- *   Spring generates the SQL at startup — zero boilerplate.
- *
+ * <p>
+ * — Spring Data JPA method naming convention:
+ * findBy{Field}         → SELECT * FROM users WHERE field = ?
+ * existsBy{Field}       → SELECT COUNT(*) > 0 ...
+ * findBy{A}And{B}       → WHERE a = ? AND b = ?
+ * Spring generates the SQL at startup — zero boilerplate.
+ * <p>
  * LEARNING POINT — When to use @Query:
- *   Use @Query for complex JPQL/SQL that can't be expressed by method names.
- *   Keep business logic in the Service layer, NOT in @Query.
+ * Use @Query for complex JPQL/SQL that can't be expressed by method names.
+ * Keep business logic in the Service layer, NOT in @Query.
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-
-    // ─── Lookup methods ───────────────────────────────────────────────────────
 
     Optional<User> findByEmail(String email);
 
@@ -45,8 +43,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u JOIN FETCH u.roles WHERE u.id = :id")
     Optional<User> findByIdWithRoles(@Param("id") UUID id);
 
-    // ─── Existence checks (used before create to fail fast) ───────────────────
-
     boolean existsByEmail(String email);
 
     boolean existsByUsername(String username);
@@ -56,14 +52,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findByStatus(User.UserStatus status, Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE LOWER(u.email) LIKE LOWER(CONCAT('%', :q, '%')) " +
-           "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%')) " +
-           "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :q, '%'))")
+            "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :q, '%'))")
     Page<User> search(@Param("q") String query, Pageable pageable);
 
     // ─── Update helpers ───────────────────────────────────────────────────────
 
     /**
      * Bulk update — more efficient than loading + saving when only one field changes.
+     *
      * @Modifying tells Spring this is a write operation (not SELECT).
      * clearAutomatically = true → evicts entities from 1st-level cache after update.
      */

@@ -18,31 +18,27 @@ import java.util.Map;
 
 /**
  * Centralised exception handler — all exceptions funnel through here.
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — RFC 7807 ProblemDetail (Spring 6+)                     │
- * │                                                                          │
- * │  ProblemDetail is a standard JSON error response format:                 │
- * │  {                                                                       │
- * │    "type":     "https://api.ecommerce.com/errors/validation",            │
- * │    "title":    "Validation Failed",                                      │
- * │    "status":   400,                                                      │
- * │    "detail":   "2 field(s) failed validation",                           │
- * │    "timestamp": "2024-01-01T10:00:00Z",                                  │
- * │    "errors":   { "email": "must not be blank", "password": "..." }       │
- * │  }                                                                       │
- * │                                                                          │
- * │  Clients know exactly where to find the error and any extra fields.     │
- * │  Spring 6 includes ProblemDetail as a first-class return type.          │
- * └──────────────────────────────────────────────────────────────────────────┘
- *
- * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  LEARNING POINT — @RestControllerAdvice                                  │
- * │                                                                          │
- * │  = @ControllerAdvice + @ResponseBody                                     │
- * │  Catches exceptions thrown from any @RestController in the application. │
- * │  The matched @ExceptionHandler method determines the response.           │
- * └──────────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * — RFC 7807 ProblemDetail (Spring 6+)
+ * <p>
+ * ProblemDetail is a standard JSON error response format:
+ * {
+ * "type":     "https://api.ecommerce.com/errors/validation",
+ * "title":    "Validation Failed",
+ * "status":   400,
+ * "detail":   "2 field(s) failed validation",
+ * "timestamp": "2024-01-01T10:00:00Z",
+ * "errors":   { "email": "must not be blank", "password": "..." }
+ * }
+ * <p>
+ * Clients know exactly where to find the error and any extra fields.
+ * Spring 6 includes ProblemDetail as a first-class return type.
+ * <p>
+ * — @RestControllerAdvice
+ * <p>
+ * = @ControllerAdvice + @ResponseBody
+ * Catches exceptions thrown from any @RestController in the application.
+ * The matched @ExceptionHandler method determines the response.
  */
 @RestControllerAdvice
 @Slf4j
@@ -66,7 +62,7 @@ public class GlobalExceptionHandler {
         problem.setType(URI.create(BASE_URI + "/validation"));
         problem.setTitle("Validation Failed");
         problem.setDetail(fieldErrors.size() + " field(s) failed validation");
-        problem.setProperty("errors",    fieldErrors);
+        problem.setProperty("errors", fieldErrors);
         problem.setProperty("timestamp", Instant.now());
         return problem;
     }
@@ -132,7 +128,7 @@ public class GlobalExceptionHandler {
     // ─── Helper ───────────────────────────────────────────────────────────────
 
     private ProblemDetail buildProblem(HttpStatus status, String errorCode,
-                                        String title, String detail) {
+                                       String title, String detail) {
         ProblemDetail problem = ProblemDetail.forStatus(status);
         problem.setType(URI.create(BASE_URI + "/" + errorCode));
         problem.setTitle(title);

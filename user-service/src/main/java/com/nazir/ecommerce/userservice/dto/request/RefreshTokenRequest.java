@@ -3,7 +3,9 @@ package com.nazir.ecommerce.userservice.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-/** Payload for POST /api/v1/auth/refresh */
+/**
+ * Payload for POST /api/v1/auth/refresh
+ */
 @Getter
 @Setter
 @NoArgsConstructor

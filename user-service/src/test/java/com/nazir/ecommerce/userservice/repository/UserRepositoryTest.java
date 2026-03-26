@@ -24,30 +24,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Repository slice test using @DataJpaTest + Testcontainers.
+ * <p>
+ * — @DataJpaTest:
+ * Loads ONLY the JPA slice of the Spring context:
+ * • Entity classes, repositories, JPA configuration
+ * • Flyway migrations (configured separately)
+ * • In-memory H2 by default, overridden here with Testcontainers PostgreSQL
+ * Does NOT load: @Service, @Controller, security, Kafka, Redis.
+ * → Fast (seconds), focused on persistence behaviour.
+ * <p>
+ * — Testcontainers:
+ * Starts a real PostgreSQL Docker container for the test run.
  *
- * LEARNING POINT — @DataJpaTest:
- *   Loads ONLY the JPA slice of the Spring context:
- *     • Entity classes, repositories, JPA configuration
- *     • Flyway migrations (configured separately)
- *     • In-memory H2 by default, overridden here with Testcontainers PostgreSQL
- *   Does NOT load: @Service, @Controller, security, Kafka, Redis.
- *   → Fast (seconds), focused on persistence behaviour.
- *
- * LEARNING POINT — Testcontainers:
- *   Starts a real PostgreSQL Docker container for the test run.
- *   @Container + @Testcontainers manages container lifecycle automatically.
- *   @DynamicPropertySource injects the container's URL into Spring's Environment
- *   BEFORE the ApplicationContext starts.
- *
- * LEARNING POINT — @AutoConfigureTestDatabase(replace = NONE):
- *   Tells @DataJpaTest NOT to replace the datasource with an embedded DB.
- *   Required when using Testcontainers (we want the real PostgreSQL).
- *
- * LEARNING POINT — TestEntityManager:
- *   A test-only EntityManager wrapper. Use it to persist fixtures directly
- *   (bypasses the repository layer so tests don't depend on save() being correct).
- *   em.persistAndFlush() → writes to DB immediately (no deferred flushing).
- *   em.clear() → evicts entities from 1st-level cache → next find() hits DB.
+ * @Container + @Testcontainers manages container lifecycle automatically.
+ * @DynamicPropertySource injects the container's URL into Spring's Environment
+ * BEFORE the ApplicationContext starts.
+ * <p>
+ * — @AutoConfigureTestDatabase(replace = NONE):
+ * Tells @DataJpaTest NOT to replace the datasource with an embedded DB.
+ * Required when using Testcontainers (we want the real PostgreSQL).
+ * <p>
+ * — TestEntityManager:
+ * A test-only EntityManager wrapper. Use it to persist fixtures directly
+ * (bypasses the repository layer so tests don't depend on save() being correct).
+ * em.persistAndFlush() → writes to DB immediately (no deferred flushing).
+ * em.clear() → evicts entities from 1st-level cache → next find() hits DB.
  */
 @DataJpaTest
 @Testcontainers
@@ -66,14 +67,16 @@ class UserRepositoryTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url",      postgres::getJdbcUrl);
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
     // ─── Dependencies ─────────────────────────────────────────────────────────
-    @Autowired private UserRepository    userRepository;
-    @Autowired private TestEntityManager em;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private TestEntityManager em;
 
     // ─── Fixtures ─────────────────────────────────────────────────────────────
 
