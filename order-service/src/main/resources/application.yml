@@ -1,11 +1,116 @@
 spring:
   application:
     name: order-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/orderdb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: OrderServicePool
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
 server:
-  port: 0  # random port — placeholder until Phase 2
+  port: ${SERVER_PORT:8082}
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+    health-check-url-path: /actuator/health
+
+# ── Resilience4j ─────────────────────────────────────────────────────────────
+#
+# LEARNING POINT — Circuit Breaker configuration:
+#
+#   slidingWindowSize     = evaluate last 10 calls
+#   minimumNumberOfCalls  = need 5 calls before circuit can open
+#   failureRateThreshold  = open when 50%+ calls fail
+#   waitDurationInOpen    = stay OPEN for 10s, then go HALF-OPEN
+#   permittedInHalfOpen   = allow 3 test calls in HALF-OPEN state
+#
+# LEARNING POINT — Retry configuration:
+#
+#   maxAttempts           = try 3 times total (1 original + 2 retries)
+#   waitDuration          = wait 500ms between retries (exponential: 500, 1000, 2000)
+#   retryExceptions       = only retry on these exceptions (not on 4xx client errors)
+#
+resilience4j:
+  circuitbreaker:
+    instances:
+      product-service:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slowCallDurationThreshold: 3s
+        slowCallRateThreshold: 80
+        registerHealthIndicator: true    # shows in /actuator/health
+  retry:
+    instances:
+      product-service:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2  # 500ms, 1000ms, 2000ms
+        retryExceptions:
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - feign.RetryableException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true   # shows circuit breaker state in /actuator/health
+  tracing:
+    sampling:
+      probability: 1.0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG
+    io.github.resilience4j: DEBUG    # shows circuit breaker state changes
+    feign: DEBUG                     # shows Feign requests
