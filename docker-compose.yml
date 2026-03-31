@@ -26,6 +26,7 @@ volumes:
   zookeeper-data:
   kafka-data:
   orderdb-data:
+  mysql-data:
   elasticsearch-data:
 
 services:
@@ -85,6 +86,26 @@ services:
       - orderdb-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d orderdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    container_name: nazir-mysql
+    networks: [ nazir-network ]
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: paymentdb
+#      MYSQL_USER: ${MYSQL_USER:-root}
+#      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-paymentpass}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}" ]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -23,7 +23,7 @@ public class OrderItem {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id",nullable = false,  length = 36)
     private UUID orderId;
 
     @Column(name = "product_id", nullable = false, length = 50)
