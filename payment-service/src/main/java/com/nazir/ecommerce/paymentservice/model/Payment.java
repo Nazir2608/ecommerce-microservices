@@ -50,7 +50,7 @@ public class Payment {
      * THE idempotency key — orderId ensures one payment per order.
      * DB UNIQUE constraint prevents double-processing on Kafka retry.
      */
-    @Column(name = "idempotency_key", nullable = false, unique = true, length = 36)
+    @Column(name = "idempotency_key", nullable = false, unique = true, length = 36, columnDefinition = "char(36)")
     private String idempotencyKey;    // = orderId.toString()
 
     @Column(name = "order_id", nullable = false, length = 36)
@@ -70,12 +70,12 @@ public class Payment {
     private String currency = "USD";
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "varchar(20)")
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", length = 30)
+    @Column(name = "payment_method", length = 30, columnDefinition = "varchar(30)")
     @Builder.Default
     private PaymentMethod paymentMethod = PaymentMethod.CARD;
 
@@ -83,7 +83,7 @@ public class Payment {
     @Column(name = "transaction_id", length = 100)
     private String transactionId;
 
-    @Column(name = "gateway_response", length = 1000)
+    @Column(name = "gateway_response", columnDefinition = "text")
     private String gatewayResponse;   // raw gateway response (truncated)
 
     @Column(name = "failure_reason", length = 500)

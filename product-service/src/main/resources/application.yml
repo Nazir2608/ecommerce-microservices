@@ -23,7 +23,7 @@ spring:
 
   # ── Kafka Producer ────────────────────────────────────────────────────────────
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
 
 server:
   port: ${SERVER_PORT:8085}
