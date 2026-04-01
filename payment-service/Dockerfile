@@ -1,12 +1,12 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Multi-stage Dockerfile — user-service
 #
-# LEARNING POINT — Multi-stage build:
+# Multi-stage build:
 #   Stage 1 (builder) — Full JDK + Maven: compile + package the JAR
 #   Stage 2 (runtime) — JRE only: copy and run the JAR
 #   Result: final image ~180MB instead of ~600MB with full JDK
 #
-# LEARNING POINT — Layered JAR (Spring Boot 2.3+):
+# Layered JAR (Spring Boot 2.3+):
 #   Spring Boot JARs can be "extracted" into layers:
 #     1. dependencies       (changes rarely — Maven libs)
 #     2. spring-boot-loader (changes rarely)

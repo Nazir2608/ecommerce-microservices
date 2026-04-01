@@ -27,16 +27,20 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("PaymentServiceImpl")
 class PaymentServiceImplTest {
 
-    @Mock private PaymentRepository     paymentRepository;
-    @Mock private PaymentGateway        paymentGateway;
-    @Mock private PaymentEventPublisher eventPublisher;
-    @Mock private PaymentMapper         paymentMapper;
+    @Mock
+    private PaymentRepository paymentRepository;
+    @Mock
+    private PaymentGateway paymentGateway;
+    @Mock
+    private PaymentEventPublisher eventPublisher;
+    @Mock
+    private PaymentMapper paymentMapper;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
 
     private static final UUID ORDER_ID = UUID.randomUUID();
-    private static final UUID USER_ID  = UUID.randomUUID();
+    private static final UUID USER_ID = UUID.randomUUID();
 
     private OrderEvent orderEvent() {
         OrderEvent e = new OrderEvent();
@@ -65,10 +69,12 @@ class PaymentServiceImplTest {
 
     // ── processOrderPayment tests ─────────────────────────────────────────
 
-    @Nested @DisplayName("processOrderPayment()")
+    @Nested
+    @DisplayName("processOrderPayment()")
     class ProcessPaymentTests {
 
-        @Test @DisplayName("should charge gateway and publish SUCCESS on successful payment")
+        @Test
+        @DisplayName("should charge gateway and publish SUCCESS on successful payment")
         void processPayment_success() {
             Payment pending = savedPendingPayment();
             given(paymentRepository.findByIdempotencyKey(ORDER_ID.toString()))
@@ -86,7 +92,8 @@ class PaymentServiceImplTest {
             then(eventPublisher).should(never()).publishFailure(any());
         }
 
-        @Test @DisplayName("should publish FAILURE when gateway declines payment")
+        @Test
+        @DisplayName("should publish FAILURE when gateway declines payment")
         void processPayment_gatewayFailure() {
             Payment pending = savedPendingPayment();
             given(paymentRepository.findByIdempotencyKey(ORDER_ID.toString()))
@@ -103,7 +110,8 @@ class PaymentServiceImplTest {
             then(eventPublisher).should(never()).publishSuccess(any());
         }
 
-        @Test @DisplayName("should be idempotent — skip processing if payment already exists")
+        @Test
+        @DisplayName("should be idempotent — skip processing if payment already exists")
         void processPayment_idempotent_existingSuccess() {
             Payment existing = savedPendingPayment();
             existing.markSuccess("TXN-EXISTING", "{}");
@@ -117,7 +125,8 @@ class PaymentServiceImplTest {
             then(paymentGateway).should(never()).charge(any(), any(), any(), any());
         }
 
-        @Test @DisplayName("should ignore non-ORDER_CREATED events")
+        @Test
+        @DisplayName("should ignore non-ORDER_CREATED events")
         void processPayment_ignoresOtherEventTypes() {
             OrderEvent event = orderEvent();
             event.setEventType(OrderEvent.EventType.ORDER_CANCELLED);
@@ -128,7 +137,8 @@ class PaymentServiceImplTest {
             then(paymentRepository).should(never()).save(any());
         }
 
-        @Test @DisplayName("should handle null event gracefully")
+        @Test
+        @DisplayName("should handle null event gracefully")
         void processPayment_nullEvent() {
             assertThatCode(() -> paymentService.processOrderPayment(null))
                     .doesNotThrowAnyException();
@@ -137,10 +147,12 @@ class PaymentServiceImplTest {
 
     // ── getByOrderId tests ────────────────────────────────────────────────
 
-    @Nested @DisplayName("getByOrderId()")
+    @Nested
+    @DisplayName("getByOrderId()")
     class GetByOrderIdTests {
 
-        @Test @DisplayName("should throw PaymentNotFoundException when no payment for order")
+        @Test
+        @DisplayName("should throw PaymentNotFoundException when no payment for order")
         void getByOrderId_notFound() {
             given(paymentRepository.findByOrderId(ORDER_ID)).willReturn(Optional.empty());
             assertThatThrownBy(() -> paymentService.getByOrderId(ORDER_ID))
@@ -150,10 +162,12 @@ class PaymentServiceImplTest {
 
     // ── MockPaymentGateway tests ──────────────────────────────────────────
 
-    @Nested @DisplayName("MockPaymentGateway")
+    @Nested
+    @DisplayName("MockPaymentGateway")
     class MockGatewayTests {
 
-        @Test @DisplayName("amount 0.01 always triggers INSUFFICIENT_FUNDS")
+        @Test
+        @DisplayName("amount 0.01 always triggers INSUFFICIENT_FUNDS")
         void mockGateway_insufficientFunds() {
             MockPaymentGateway gateway = new MockPaymentGateway();
             PaymentGatewayResult result = gateway.charge(
@@ -162,7 +176,8 @@ class PaymentServiceImplTest {
             assertThat(result.getErrorCode()).isEqualTo("INSUFFICIENT_FUNDS");
         }
 
-        @Test @DisplayName("amount 0.02 always triggers CARD_DECLINED")
+        @Test
+        @DisplayName("amount 0.02 always triggers CARD_DECLINED")
         void mockGateway_cardDeclined() {
             MockPaymentGateway gateway = new MockPaymentGateway();
             PaymentGatewayResult result = gateway.charge(
@@ -171,7 +186,8 @@ class PaymentServiceImplTest {
             assertThat(result.getErrorCode()).isEqualTo("CARD_DECLINED");
         }
 
-        @Test @DisplayName("refund always succeeds with refund ID")
+        @Test
+        @DisplayName("refund always succeeds with refund ID")
         void mockGateway_refund() {
             MockPaymentGateway gateway = new MockPaymentGateway();
             PaymentGatewayResult result = gateway.refund("TXN-12345", new BigDecimal("50.00"));

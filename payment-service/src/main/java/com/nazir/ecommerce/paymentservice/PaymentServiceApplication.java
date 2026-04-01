@@ -15,7 +15,7 @@ import org.springframework.kafka.annotation.EnableKafka;
  * Kafka producer   → publishes to payment.events (SUCCESS or FAILED)
  * MySQL            → ACID for financial records, UNIQUE on idempotency_key
  * <p>
- * LEARNING POINT — Why event-driven for payments?
+ * Why event-driven for payments?
  * Synchronous: order-service calls payment-service via HTTP
  * Problem: if payment-service is down, order fails immediately
  * Problem: if order-service crashes after calling payment but before saving,
