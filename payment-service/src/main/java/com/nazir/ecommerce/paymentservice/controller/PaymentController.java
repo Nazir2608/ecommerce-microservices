@@ -41,8 +41,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getMyPayments(
             @RequestHeader("X-Auth-User-Id") String userId,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(
-                ApiResponse.success(paymentService.getByUser(UUID.fromString(userId), pageable)));
+        return ResponseEntity.ok(ApiResponse.success(paymentService.getByUser(UUID.fromString(userId), pageable)));
     }
 
     @PostMapping("/{paymentId}/refund")
@@ -50,7 +49,6 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponse>> refund(
             @PathVariable UUID paymentId,
             @Valid @RequestBody RefundRequest request) {
-        return ResponseEntity.ok(
-                ApiResponse.success(paymentService.refund(paymentId, request), "Refund initiated"));
+        return ResponseEntity.ok(ApiResponse.success(paymentService.refund(paymentId, request), "Refund initiated"));
     }
 }

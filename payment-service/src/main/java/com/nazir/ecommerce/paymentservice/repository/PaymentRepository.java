@@ -19,6 +19,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> findByIdempotencyKey(String idempotencyKey);
 
     Optional<Payment> findByOrderId(UUID orderId);
+
     Page<Payment> findByUserId(UUID userId, Pageable pageable);
+
     Page<Payment> findByStatus(Payment.PaymentStatus status, Pageable pageable);
 }

@@ -7,11 +7,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-    info    = @Info(title = "Payment Service API", version = "1.0",
-                    description = "Payment processing with idempotency"),
-    servers = {
-        @Server(url = "http://localhost:8083", description = "Local direct"),
-        @Server(url = "http://localhost:8080", description = "Via API Gateway")
-    }
+        info = @Info(title = "Payment Service API", version = "1.0",
+                description = "Payment processing with idempotency"),
+        servers = {
+                @Server(url = "http://localhost:8083", description = "Local direct"),
+                @Server(url = "http://localhost:8080", description = "Via API Gateway")
+        }
 )
-public class OpenApiConfig {}
+public class OpenApiConfig {
+}

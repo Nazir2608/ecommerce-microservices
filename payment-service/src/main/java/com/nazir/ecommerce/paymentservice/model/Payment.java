@@ -11,33 +11,37 @@ import java.util.UUID;
 
 /**
  * Payment entity — MySQL.
- *
+ * <p>
  * LEARNING POINT — Why MySQL for payments?
- *   InnoDB storage engine: full ACID compliance, row-level locking
- *   Better suited than PostgreSQL for high write throughput (financial transactions)
- *   Industry standard for payment processing databases
- *   Flyway MySQL dialect support included
- *
+ * InnoDB storage engine: full ACID compliance, row-level locking
+ * Better suited than PostgreSQL for high write throughput (financial transactions)
+ * Industry standard for payment processing databases
+ * Flyway MySQL dialect support included
+ * <p>
  * LEARNING POINT — Idempotency key (THE most important field here):
- *   idempotencyKey = orderId (one payment attempt per order)
- *   UNIQUE constraint at DB level — if payment-service crashes and Kafka
- *   redelivers ORDER_CREATED, the second insert hits the UNIQUE constraint.
- *   We catch this and return the existing payment → no double charge.
- *
- *   This is the IDEMPOTENCY PATTERN:
- *     First call  → process payment → insert row → publish SUCCESS
- *     Second call → UNIQUE violation → look up existing → return existing result
- *     Customer is NEVER charged twice regardless of Kafka retry behavior.
+ * idempotencyKey = orderId (one payment attempt per order)
+ * UNIQUE constraint at DB level — if payment-service crashes and Kafka
+ * redelivers ORDER_CREATED, the second insert hits the UNIQUE constraint.
+ * We catch this and return the existing payment → no double charge.
+ * <p>
+ * This is the IDEMPOTENCY PATTERN:
+ * First call  → process payment → insert row → publish SUCCESS
+ * Second call → UNIQUE violation → look up existing → return existing result
+ * Customer is NEVER charged twice regardless of Kafka retry behavior.
  */
 @Entity
 @Table(name = "payments",
-    indexes = {
-        @Index(name = "idx_payments_order_id",   columnList = "order_id"),
-        @Index(name = "idx_payments_user_id",    columnList = "user_id"),
-        @Index(name = "idx_payments_status",     columnList = "status"),
-        @Index(name = "idx_payments_created_at", columnList = "created_at")
-    })
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+        indexes = {
+                @Index(name = "idx_payments_order_id", columnList = "order_id"),
+                @Index(name = "idx_payments_user_id", columnList = "user_id"),
+                @Index(name = "idx_payments_status", columnList = "status"),
+                @Index(name = "idx_payments_created_at", columnList = "created_at")
+        })
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EqualsAndHashCode(of = "id")
 public class Payment {
 
@@ -79,7 +83,9 @@ public class Payment {
     @Builder.Default
     private PaymentMethod paymentMethod = PaymentMethod.CARD;
 
-    /** Transaction ID returned by the payment gateway (Stripe/PayPal ref) */
+    /**
+     * Transaction ID returned by the payment gateway (Stripe/PayPal ref)
+     */
     @Column(name = "transaction_id", length = 100)
     private String transactionId;
 
@@ -107,17 +113,17 @@ public class Payment {
     // ── Domain methods ────────────────────────────────────────────────────
 
     public void markSuccess(String transactionId, String gatewayResponse) {
-        this.status          = PaymentStatus.SUCCESS;
-        this.transactionId   = transactionId;
+        this.status = PaymentStatus.SUCCESS;
+        this.transactionId = transactionId;
         this.gatewayResponse = truncate(gatewayResponse, 1000);
-        this.processedAt     = LocalDateTime.now();
+        this.processedAt = LocalDateTime.now();
     }
 
     public void markFailed(String reason, String gatewayResponse) {
-        this.status          = PaymentStatus.FAILED;
-        this.failureReason   = truncate(reason, 500);
+        this.status = PaymentStatus.FAILED;
+        this.failureReason = truncate(reason, 500);
         this.gatewayResponse = truncate(gatewayResponse, 1000);
-        this.processedAt     = LocalDateTime.now();
+        this.processedAt = LocalDateTime.now();
     }
 
     private String truncate(String s, int max) {

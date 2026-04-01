@@ -27,13 +27,13 @@ public class KafkaConfig {
     @Bean
     public ProducerFactory<String, PaymentEvent> paymentEventProducerFactory() {
         return new DefaultKafkaProducerFactory<>(Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,   bootstrapServers,
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,   StringSerializer.class,
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class,
-                ProducerConfig.ACKS_CONFIG,               "all",
-                ProducerConfig.RETRIES_CONFIG,             3,
-                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,  true,
-                JsonSerializer.ADD_TYPE_INFO_HEADERS,      false
+                ProducerConfig.ACKS_CONFIG, "all",
+                ProducerConfig.RETRIES_CONFIG, 3,
+                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true,
+                JsonSerializer.ADD_TYPE_INFO_HEADERS, false
         ));
     }
 
@@ -50,7 +50,7 @@ public class KafkaConfig {
         deser.addTrustedPackages("*");
         return new DefaultKafkaConsumerFactory<>(Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
-                ConsumerConfig.GROUP_ID_CONFIG,          "payment-service-group",
+                ConsumerConfig.GROUP_ID_CONFIG, "payment-service-group",
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
                 ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false
         ), new StringDeserializer(), deser);

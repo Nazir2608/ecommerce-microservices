@@ -11,23 +11,23 @@ import java.util.UUID;
 
 /**
  * Mock gateway — simulates a real payment provider.
- *
+ * <p>
  * LEARNING POINT — Why a mock gateway?
- *   Real gateways (Stripe, PayPal, Razorpay) require:
- *     • API keys and merchant accounts
- *     • HTTPS with valid certificates
- *     • Test credit card numbers
- *   For local dev and CI, a mock lets us test the full flow without real money.
- *
- *   Mock behaviour:
- *     • 90% success rate (random)
- *     • Specific amounts trigger specific failure codes (testability)
- *     • Simulates 200–500ms network latency
- *     • Returns realistic transactionId format
+ * Real gateways (Stripe, PayPal, Razorpay) require:
+ * • API keys and merchant accounts
+ * • HTTPS with valid certificates
+ * • Test credit card numbers
+ * For local dev and CI, a mock lets us test the full flow without real money.
+ * <p>
+ * Mock behaviour:
+ * • 90% success rate (random)
+ * • Specific amounts trigger specific failure codes (testability)
+ * • Simulates 200–500ms network latency
+ * • Returns realistic transactionId format
  *
  * @Primary → Spring injects this when PaymentGateway is autowired.
- *   To use Stripe: create StripeGateway implements PaymentGateway,
- *   add @ConditionalOnProperty(name = "payment.gateway", havingValue = "stripe")
+ * To use Stripe: create StripeGateway implements PaymentGateway,
+ * add @ConditionalOnProperty(name = "payment.gateway", havingValue = "stripe")
  */
 @Component
 @Primary
@@ -81,7 +81,7 @@ public class MockPaymentGateway implements PaymentGateway {
     public PaymentGatewayResult refund(String transactionId, BigDecimal amount) {
         log.info("[MockGateway] Refunding {} for txn={}", amount, transactionId);
         simulateLatency();
-        String refundId = "REF-" + UUID.randomUUID().toString().replace("-","").toUpperCase().substring(0,12);
+        String refundId = "REF-" + UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0, 12);
         return PaymentGatewayResult.builder()
                 .success(true).transactionId(refundId)
                 .rawResponse("{\"refund_id\":\"" + refundId + "\",\"status\":\"succeeded\"}")
