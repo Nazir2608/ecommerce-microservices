@@ -38,17 +38,13 @@ public class PaymentController {
 
     @GetMapping("/my-payments")
     @Operation(summary = "Get payment history for authenticated user")
-    public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getMyPayments(
-            @RequestHeader("X-Auth-User-Id") String userId,
-            @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getMyPayments(@RequestHeader("X-Auth-User-Id") String userId, @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getByUser(UUID.fromString(userId), pageable)));
     }
 
     @PostMapping("/{paymentId}/refund")
     @Operation(summary = "Initiate refund for a successful payment — ADMIN only")
-    public ResponseEntity<ApiResponse<PaymentResponse>> refund(
-            @PathVariable UUID paymentId,
-            @Valid @RequestBody RefundRequest request) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> refund(@PathVariable UUID paymentId, @Valid @RequestBody RefundRequest request) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.refund(paymentId, request), "Refund initiated"));
     }
 }

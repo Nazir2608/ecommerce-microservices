@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Payment gateway interface.
  * <p>
- * LEARNING POINT — Interface-based abstraction (Strategy Pattern):
+ * Interface-based abstraction (Strategy Pattern):
  * Today: MockPaymentGateway (90% success simulation)
  * Tomorrow: StripeGateway, RazorpayGateway
  * Day after: both, A/B tested
