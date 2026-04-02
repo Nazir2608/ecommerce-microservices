@@ -2,10 +2,17 @@ package com.nazir.ecommerce.orderservice.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+
 import java.math.BigDecimal;
 
-/** Maps the 'data' field from product-service ApiResponse<ProductResponse> */
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+/**
+ * Maps the 'data' field from product-service ApiResponse<ProductResponse>
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductInfo {
     private String id;

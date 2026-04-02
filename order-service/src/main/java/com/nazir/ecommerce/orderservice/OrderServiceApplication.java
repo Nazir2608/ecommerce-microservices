@@ -8,13 +8,13 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 /**
  * Order Service — Phase 3.
- *
+ * <p>
  * Key patterns:
- *   OpenFeign   → calls product-service to validate stock
- *   Resilience4j → circuit breaker + retry around Feign calls
- *   Kafka pub    → ORDER_CREATED triggers payment-service (Saga start)
- *   Kafka sub    → payment.events drives order confirm/cancel (Saga reaction)
- *   Flyway       → manages orderdb schema (separate DB from userdb)
+ * OpenFeign   → calls product-service to validate stock
+ * Resilience4j → circuit breaker + retry around Feign calls
+ * Kafka pub    → ORDER_CREATED triggers payment-service (Saga start)
+ * Kafka sub    → payment.events drives order confirm/cancel (Saga reaction)
+ * Flyway       → manages orderdb schema (separate DB from userdb)
  */
 @SpringBootApplication
 @EnableDiscoveryClient

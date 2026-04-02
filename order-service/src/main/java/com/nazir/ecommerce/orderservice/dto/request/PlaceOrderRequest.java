@@ -3,9 +3,14 @@ package com.nazir.ecommerce.orderservice.dto.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
 import java.util.List;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PlaceOrderRequest {
 
     @NotEmpty(message = "Order must contain at least one item")
@@ -22,7 +27,11 @@ public class PlaceOrderRequest {
     @Size(max = 500)
     private String notes;
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class OrderItemRequest {
         @NotBlank(message = "Product ID is required")
         private String productId;
@@ -33,12 +42,21 @@ public class PlaceOrderRequest {
         private Integer quantity;
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ShippingAddressRequest {
-        @NotBlank private String streetAddress;
-        @NotBlank private String city;
-        @NotBlank private String state;
-        @NotBlank private String postalCode;
-        @NotBlank private String country;
+        @NotBlank
+        private String streetAddress;
+        @NotBlank
+        private String city;
+        @NotBlank
+        private String state;
+        @NotBlank
+        private String postalCode;
+        @NotBlank
+        private String country;
     }
 }

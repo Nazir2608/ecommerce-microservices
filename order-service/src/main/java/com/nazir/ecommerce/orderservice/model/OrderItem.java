@@ -2,20 +2,25 @@ package com.nazir.ecommerce.orderservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * LEARNING POINT — Price snapshot:
- *   productName and unitPrice are copied from product-service AT ORDER TIME.
- *   They never change after the order is placed.
- *   If the seller updates price tomorrow, this order still shows what was charged.
- *   productId is only kept for stock operations (reserve/release/confirm).
+ * Price snapshot:
+ * productName and unitPrice are copied from product-service AT ORDER TIME.
+ * They never change after the order is placed.
+ * If the seller updates price tomorrow, this order still shows what was charged.
+ * productId is only kept for stock operations (reserve/release/confirm).
  */
 @Entity
 @Table(name = "order_items",
-       indexes = @Index(name = "idx_order_items_order", columnList = "order_id"))
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+        indexes = @Index(name = "idx_order_items_order", columnList = "order_id"))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderItem {
 
     @Id
@@ -23,7 +28,7 @@ public class OrderItem {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "order_id",nullable = false,  length = 36)
+    @Column(name = "order_id", nullable = false, length = 36)
     private UUID orderId;
 
     @Column(name = "product_id", nullable = false, length = 50)

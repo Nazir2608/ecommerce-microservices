@@ -30,10 +30,14 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("OrderServiceImpl")
 class OrderServiceImplTest {
 
-    @Mock private OrderRepository       orderRepository;
-    @Mock private ProductServiceClient  productClient;
-    @Mock private OrderEventPublisher   eventPublisher;
-    @Mock private OrderMapper           orderMapper;
+    @Mock
+    private OrderRepository orderRepository;
+    @Mock
+    private ProductServiceClient productClient;
+    @Mock
+    private OrderEventPublisher eventPublisher;
+    @Mock
+    private OrderMapper orderMapper;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -58,7 +62,8 @@ class OrderServiceImplTest {
                 .price(new BigDecimal("99.99")).availableStock(stock).inStock(stock > 0)
                 .status("ACTIVE").build();
         ApiResponseWrapper<ProductInfo> w = new ApiResponseWrapper<>();
-        w.setSuccess(true); w.setData(info);
+        w.setSuccess(true);
+        w.setData(info);
         return w;
     }
 
@@ -82,10 +87,12 @@ class OrderServiceImplTest {
 
     // ── placeOrder tests ──────────────────────────────────────────────────
 
-    @Nested @DisplayName("placeOrder()")
+    @Nested
+    @DisplayName("placeOrder()")
     class PlaceOrderTests {
 
-        @Test @DisplayName("should create PENDING order when product is in stock")
+        @Test
+        @DisplayName("should create PENDING order when product is in stock")
         void placeOrder_success() {
             given(productClient.getProduct("prod-1")).willReturn(successWrapper("prod-1", 10));
             given(orderRepository.existsByOrderNumber(anyString())).willReturn(false);
@@ -109,7 +116,8 @@ class OrderServiceImplTest {
             then(eventPublisher).should().publish(any(), eq(com.nazir.ecommerce.orderservice.event.OrderEvent.EventType.ORDER_CREATED));
         }
 
-        @Test @DisplayName("should throw ProductUnavailableException when product has insufficient stock")
+        @Test
+        @DisplayName("should throw ProductUnavailableException when product has insufficient stock")
         void placeOrder_insufficientStock() {
             given(productClient.getProduct("prod-1")).willReturn(successWrapper("prod-1", 1));
 
@@ -122,7 +130,8 @@ class OrderServiceImplTest {
             then(eventPublisher).should(never()).publish(any(), any());
         }
 
-        @Test @DisplayName("should throw ProductUnavailableException when product-service returns null data")
+        @Test
+        @DisplayName("should throw ProductUnavailableException when product-service returns null data")
         void placeOrder_productNotFound() {
             ApiResponseWrapper<ProductInfo> empty = new ApiResponseWrapper<>();
             empty.setSuccess(false);
@@ -136,10 +145,12 @@ class OrderServiceImplTest {
 
     // ── handlePaymentEvent tests ──────────────────────────────────────────
 
-    @Nested @DisplayName("handlePaymentEvent()")
+    @Nested
+    @DisplayName("handlePaymentEvent()")
     class PaymentEventTests {
 
-        @Test @DisplayName("should confirm order and deduct stock on PAYMENT_SUCCESS")
+        @Test
+        @DisplayName("should confirm order and deduct stock on PAYMENT_SUCCESS")
         void paymentSuccess_confirmsOrder() {
             Order order = pendingOrder();
             PaymentEvent event = PaymentEvent.builder()
@@ -159,7 +170,8 @@ class OrderServiceImplTest {
             then(eventPublisher).should().publish(any(), eq(com.nazir.ecommerce.orderservice.event.OrderEvent.EventType.ORDER_CONFIRMED));
         }
 
-        @Test @DisplayName("should cancel order and release stock on PAYMENT_FAILED")
+        @Test
+        @DisplayName("should cancel order and release stock on PAYMENT_FAILED")
         void paymentFailed_cancelsOrder() {
             Order order = pendingOrder();
             PaymentEvent event = PaymentEvent.builder()
@@ -177,7 +189,8 @@ class OrderServiceImplTest {
             then(eventPublisher).should().publish(any(), eq(com.nazir.ecommerce.orderservice.event.OrderEvent.EventType.ORDER_CANCELLED));
         }
 
-        @Test @DisplayName("should be idempotent — skip if order already CONFIRMED")
+        @Test
+        @DisplayName("should be idempotent — skip if order already CONFIRMED")
         void paymentSuccess_idempotent_skipIfAlreadyConfirmed() {
             Order order = pendingOrder();
             order.confirm("txn-already");  // already confirmed
@@ -198,10 +211,12 @@ class OrderServiceImplTest {
 
     // ── getById tests ─────────────────────────────────────────────────────
 
-    @Nested @DisplayName("getById()")
+    @Nested
+    @DisplayName("getById()")
     class GetByIdTests {
 
-        @Test @DisplayName("should throw OrderNotFoundException when order not found for user")
+        @Test
+        @DisplayName("should throw OrderNotFoundException when order not found for user")
         void getById_notFound() {
             UUID orderId = UUID.randomUUID();
             given(orderRepository.findByIdAndUserIdWithItems(orderId, USER_ID))
@@ -214,10 +229,12 @@ class OrderServiceImplTest {
 
     // ── State machine tests ───────────────────────────────────────────────
 
-    @Nested @DisplayName("Order state machine")
+    @Nested
+    @DisplayName("Order state machine")
     class StateMachineTests {
 
-        @Test @DisplayName("confirm() transitions PENDING → CONFIRMED")
+        @Test
+        @DisplayName("confirm() transitions PENDING → CONFIRMED")
         void confirm_fromPending() {
             Order order = pendingOrder();
             order.confirm("txn-123");
@@ -226,7 +243,8 @@ class OrderServiceImplTest {
             assertThat(order.getConfirmedAt()).isNotNull();
         }
 
-        @Test @DisplayName("confirm() throws when order is not PENDING")
+        @Test
+        @DisplayName("confirm() throws when order is not PENDING")
         void confirm_wrongState() {
             Order order = pendingOrder();
             order.confirm("txn-1");  // now CONFIRMED
@@ -235,7 +253,8 @@ class OrderServiceImplTest {
                     .hasMessageContaining("CONFIRMED");
         }
 
-        @Test @DisplayName("cancel() throws when order is SHIPPED")
+        @Test
+        @DisplayName("cancel() throws when order is SHIPPED")
         void cancel_shippedOrder() {
             Order order = pendingOrder();
             order.confirm("txn-1");

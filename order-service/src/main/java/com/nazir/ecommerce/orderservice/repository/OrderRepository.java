@@ -16,10 +16,10 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     /**
-     * LEARNING POINT — JOIN FETCH prevents N+1:
-     *   Without JOIN FETCH: 1 query for order + N queries for each item = N+1 queries.
-     *   With JOIN FETCH: 1 query returns order + all items in a single SQL JOIN.
-     *   Always use JOIN FETCH when you know you'll access the collection.
+     * JOIN FETCH prevents N+1:
+     * Without JOIN FETCH: 1 query for order + N queries for each item = N+1 queries.
+     * With JOIN FETCH: 1 query returns order + all items in a single SQL JOIN.
+     * Always use JOIN FETCH when you know you'll access the collection.
      */
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id = :id")
     Optional<Order> findByIdWithItems(@Param("id") UUID id);
@@ -31,6 +31,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUserIdWithItems(@Param("userId") UUID userId);
 
     Page<Order> findByUserId(UUID userId, Pageable pageable);
+
     Page<Order> findByStatus(Order.OrderStatus status, Pageable pageable);
+
     boolean existsByOrderNumber(String orderNumber);
 }

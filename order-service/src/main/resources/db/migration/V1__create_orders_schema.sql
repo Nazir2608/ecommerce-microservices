@@ -1,7 +1,7 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- V1: Create orders schema
 --
--- LEARNING POINT — Database-per-service:
+--   Database-per-service:
 --   This is a SEPARATE database (orderdb) from userdb.
 --   order-service never queries userdb directly.
 --   User data needed in orders (email) is denormalized as a snapshot.

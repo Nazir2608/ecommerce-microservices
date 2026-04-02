@@ -22,7 +22,7 @@ import java.util.UUID;
 /**
  * Order REST API controller.
  *
- * LEARNING POINT — Header-based user identity:
+ *   Header-based user identity:
  *   The API Gateway validates the JWT, extracts userId + email, and forwards
  *   them as HTTP headers: X-Auth-User-Id, X-Auth-User-Email.
  *   This service TRUSTS those headers — it never validates the JWT itself.
@@ -37,7 +37,6 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // ── Customer endpoints (require authentication via gateway) ─────────────
 
     @PostMapping
     @Operation(summary = "Place a new order — validates stock via Feign → product-service")
@@ -46,29 +45,20 @@ public class OrderController {
             @RequestHeader("X-Auth-User-Id")    String userId,
             @RequestHeader("X-Auth-User-Email") String userEmail) {
 
-        OrderResponse response = orderService.placeOrder(
-                request, UUID.fromString(userId), userEmail);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Order placed successfully"));
+        OrderResponse response = orderService.placeOrder(request, UUID.fromString(userId), userEmail);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Order placed successfully"));
     }
 
     @GetMapping("/my-orders")
     @Operation(summary = "Get all orders for the authenticated user")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
-            @RequestHeader("X-Auth-User-Id") String userId) {
-
-        return ResponseEntity.ok(
-                ApiResponse.success(orderService.getMyOrders(UUID.fromString(userId))));
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(@RequestHeader("X-Auth-User-Id") String userId) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getMyOrders(UUID.fromString(userId))));
     }
 
     @GetMapping("/{orderId}")
     @Operation(summary = "Get order by ID (customer can only see their own orders)")
-    public ResponseEntity<ApiResponse<OrderResponse>> getById(
-            @PathVariable UUID orderId,
-            @RequestHeader("X-Auth-User-Id") String userId) {
-
-        return ResponseEntity.ok(
-                ApiResponse.success(orderService.getById(orderId, UUID.fromString(userId))));
+    public ResponseEntity<ApiResponse<OrderResponse>> getById(@PathVariable UUID orderId, @RequestHeader("X-Auth-User-Id") String userId) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getById(orderId, UUID.fromString(userId))));
     }
 
     @PostMapping("/{orderId}/cancel")
@@ -79,19 +69,14 @@ public class OrderController {
             @RequestBody(required = false) Map<String, String> body) {
 
         String reason = body != null ? body.get("reason") : null;
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        orderService.cancelOrder(orderId, UUID.fromString(userId), reason),
-                        "Order cancelled"));
+        return ResponseEntity.ok(ApiResponse.success(orderService.cancelOrder(orderId, UUID.fromString(userId), reason), "Order cancelled"));
     }
 
-    // ── Admin / Warehouse endpoints ──────────────────────────────────────────
+    // ── Admin / Warehouse endpoints ─────────
 
     @GetMapping
     @Operation(summary = "List all orders — ADMIN only")
-    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getAllOrders(@PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(orderService.getAllOrders(pageable)));
     }
 
@@ -104,14 +89,12 @@ public class OrderController {
     @PostMapping("/{orderId}/ship")
     @Operation(summary = "Mark order as shipped — WAREHOUSE/ADMIN only")
     public ResponseEntity<ApiResponse<OrderResponse>> ship(@PathVariable UUID orderId) {
-        return ResponseEntity.ok(
-                ApiResponse.success(orderService.shipOrder(orderId), "Order marked as shipped"));
+        return ResponseEntity.ok(ApiResponse.success(orderService.shipOrder(orderId), "Order marked as shipped"));
     }
 
     @PostMapping("/{orderId}/deliver")
     @Operation(summary = "Mark order as delivered — WAREHOUSE/ADMIN only")
     public ResponseEntity<ApiResponse<OrderResponse>> deliver(@PathVariable UUID orderId) {
-        return ResponseEntity.ok(
-                ApiResponse.success(orderService.deliverOrder(orderId), "Order marked as delivered"));
+        return ResponseEntity.ok(ApiResponse.success(orderService.deliverOrder(orderId), "Order marked as delivered"));
     }
 }

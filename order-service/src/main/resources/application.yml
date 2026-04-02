@@ -46,7 +46,7 @@ eureka:
 
 # ── Resilience4j ─────────────────────────────────────────────────────────────
 #
-# LEARNING POINT — Circuit Breaker configuration:
+#  Circuit Breaker configuration:
 #
 #   slidingWindowSize     = evaluate last 10 calls
 #   minimumNumberOfCalls  = need 5 calls before circuit can open
@@ -54,7 +54,7 @@ eureka:
 #   waitDurationInOpen    = stay OPEN for 10s, then go HALF-OPEN
 #   permittedInHalfOpen   = allow 3 test calls in HALF-OPEN state
 #
-# LEARNING POINT — Retry configuration:
+#    Retry configuration:
 #
 #   maxAttempts           = try 3 times total (1 original + 2 retries)
 #   waitDuration          = wait 500ms between retries (exponential: 500, 1000, 2000)
