@@ -1,7 +1,7 @@
 version: "3.9"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Nazir E-Commerce Microservices — Docker Compose
+#  E-Commerce Microservices — Docker Compose
 #
 # STARTUP ORDER (enforced via healthchecks + depends_on):
 #   infrastructure  →  service-registry  →  config-server
