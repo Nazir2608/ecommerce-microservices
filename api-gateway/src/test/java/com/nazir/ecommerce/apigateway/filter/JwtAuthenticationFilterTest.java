@@ -25,8 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 class JwtAuthenticationFilterTest {
 
     private JwtAuthenticationFilter filter;
-    private static final String SECRET =
-            "NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!";
+    private static final String SECRET = "NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!";
 
     @BeforeEach
     void setUp() {
@@ -63,10 +62,10 @@ class JwtAuthenticationFilterTest {
         final ServerWebExchange[] captured = new ServerWebExchange[1];
 
         StepVerifier.create(
-                gatewayFilter.filter(exchange, ex -> {
-                    captured[0] = ex;
-                    return Mono.empty();
-                }))
+                        gatewayFilter.filter(exchange, ex -> {
+                            captured[0] = ex;
+                            return Mono.empty();
+                        }))
                 .verifyComplete();
 
         // Verify downstream headers were set
@@ -86,7 +85,7 @@ class JwtAuthenticationFilterTest {
         var gatewayFilter = filter.apply(new JwtAuthenticationFilter.Config());
 
         StepVerifier.create(
-                gatewayFilter.filter(exchange, ex -> Mono.empty()))
+                        gatewayFilter.filter(exchange, ex -> Mono.empty()))
                 .verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -110,7 +109,7 @@ class JwtAuthenticationFilterTest {
         var gatewayFilter = filter.apply(new JwtAuthenticationFilter.Config());
 
         StepVerifier.create(
-                gatewayFilter.filter(exchange, ex -> Mono.empty()))
+                        gatewayFilter.filter(exchange, ex -> Mono.empty()))
                 .verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -130,7 +129,7 @@ class JwtAuthenticationFilterTest {
         var gatewayFilter = filter.apply(new JwtAuthenticationFilter.Config());
 
         StepVerifier.create(
-                gatewayFilter.filter(exchange, ex -> Mono.empty()))
+                        gatewayFilter.filter(exchange, ex -> Mono.empty()))
                 .verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -147,7 +146,7 @@ class JwtAuthenticationFilterTest {
         var gatewayFilter = filter.apply(new JwtAuthenticationFilter.Config());
 
         StepVerifier.create(
-                gatewayFilter.filter(exchange, ex -> Mono.empty()))
+                        gatewayFilter.filter(exchange, ex -> Mono.empty()))
                 .verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);

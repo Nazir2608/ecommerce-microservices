@@ -7,25 +7,25 @@ import reactor.core.publisher.Mono;
 
 /**
  * Rate limiter key resolvers.
- *
- * LEARNING POINT — Redis Token Bucket algorithm:
- *   Each "key" (IP address here) gets a "bucket" of tokens in Redis.
- *   replenishRate = N tokens added per second (steady-state rate)
- *   burstCapacity = max tokens bucket can hold (allows brief bursts)
- *
- *   Example: replenishRate=20, burstCapacity=40
- *     Normal usage:   up to 20 req/s → always succeeds
- *     Burst:          up to 40 req/s briefly → succeeds while tokens remain
- *     Over limit:     429 Too Many Requests
- *     After slowing down: tokens refill → requests succeed again
- *
- * LEARNING POINT — KeyResolver options:
- *   Per IP      → fair for all users, prevents single IP from abusing
- *   Per user    → fairer, requires authenticated user (userId from JWT header)
- *   Per API key → for B2B APIs with quotas per customer
- *
- *   We provide both: ipKeyResolver (used on public routes)
- *                   userKeyResolver (for authenticated routes)
+ * <p>
+ * — Redis Token Bucket algorithm:
+ * Each "key" (IP address here) gets a "bucket" of tokens in Redis.
+ * replenishRate = N tokens added per second (steady-state rate)
+ * burstCapacity = max tokens bucket can hold (allows brief bursts)
+ * <p>
+ * Example: replenishRate=20, burstCapacity=40
+ * Normal usage:   up to 20 req/s → always succeeds
+ * Burst:          up to 40 req/s briefly → succeeds while tokens remain
+ * Over limit:     429 Too Many Requests
+ * After slowing down: tokens refill → requests succeed again
+ * <p>
+ * — KeyResolver options:
+ * Per IP      → fair for all users, prevents single IP from abusing
+ * Per user    → fairer, requires authenticated user (userId from JWT header)
+ * Per API key → for B2B APIs with quotas per customer
+ * <p>
+ * We provide both: ipKeyResolver (used on public routes)
+ * userKeyResolver (for authenticated routes)
  */
 @Configuration
 public class RateLimiterConfig {

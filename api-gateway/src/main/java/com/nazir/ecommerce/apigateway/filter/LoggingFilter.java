@@ -14,20 +14,20 @@ import java.util.UUID;
 
 /**
  * Global logging filter — applied to ALL routes automatically.
- *
- * LEARNING POINT — GlobalFilter vs GatewayFilter:
- *   GlobalFilter runs on every request without any route configuration.
- *   Use it for cross-cutting concerns: logging, tracing, metrics.
- *
- * LEARNING POINT — Ordered.HIGHEST_PRECEDENCE + 1:
- *   Filters run in order. Lower number = runs first.
- *   We want logging to wrap everything → run first (HIGHEST_PRECEDENCE = first in)
- *   and last (logged after response is done via doFinally/then).
- *
- * LEARNING POINT — Mono.fromRunnable + then():
- *   chain.filter() returns a Mono that completes when the downstream response is done.
- *   .then(Mono.fromRunnable(...)) executes AFTER the response completes.
- *   This is how we measure response time in a reactive (non-blocking) filter.
+ * <p>
+ * — GlobalFilter vs GatewayFilter:
+ * GlobalFilter runs on every request without any route configuration.
+ * Use it for cross-cutting concerns: logging, tracing, metrics.
+ * <p>
+ * — Ordered.HIGHEST_PRECEDENCE + 1:
+ * Filters run in order. Lower number = runs first.
+ * We want logging to wrap everything → run first (HIGHEST_PRECEDENCE = first in)
+ * and last (logged after response is done via doFinally/then).
+ * <p>
+ * — Mono.fromRunnable + then():
+ * chain.filter() returns a Mono that completes when the downstream response is done.
+ * .then(Mono.fromRunnable(...)) executes AFTER the response completes.
+ * This is how we measure response time in a reactive (non-blocking) filter.
  */
 @Component
 @Slf4j
@@ -40,12 +40,12 @@ public class LoggingFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest  request  = exchange.getRequest();
+        ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
 
         // Attach a unique request ID for distributed tracing correlation
         String requestId = UUID.randomUUID().toString().substring(0, 8);
-        long   startMs   = System.currentTimeMillis();
+        long startMs = System.currentTimeMillis();
 
         ServerHttpRequest mutated = request.mutate()
                 .header("X-Request-Id", requestId)

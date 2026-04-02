@@ -12,20 +12,20 @@ import java.util.Map;
 
 /**
  * Fallback controller — called when circuit breaker OPENS for a downstream service.
- *
- * LEARNING POINT — What is a circuit breaker fallback?
- *   Without fallback: client waits 30s for timeout → gateway returns 504 Gateway Timeout
- *   With fallback:    circuit opens instantly → gateway returns 503 in milliseconds
- *
- *   The fallback is a graceful degradation response:
- *   - Tells the client WHAT is unavailable and WHY
- *   - Returns structured JSON (not an ugly 504 HTML error)
- *   - Avoids cascading failures (downstream timeout doesn't block the gateway thread)
- *
- * LEARNING POINT — Why /fallback/{service} not /error?
- *   Each service gets its own fallback URL so we can return service-specific messages.
- *   The circuit breaker config references: fallbackUri: forward:/fallback/user-service
- *   Gateway internally forwards to this controller when the circuit opens.
+ * <p>
+ * — What is a circuit breaker fallback?
+ * Without fallback: client waits 30s for timeout → gateway returns 504 Gateway Timeout
+ * With fallback:    circuit opens instantly → gateway returns 503 in milliseconds
+ * <p>
+ * The fallback is a graceful degradation response:
+ * - Tells the client WHAT is unavailable and WHY
+ * - Returns structured JSON (not an ugly 504 HTML error)
+ * - Avoids cascading failures (downstream timeout doesn't block the gateway thread)
+ * <p>
+ * — Why /fallback/{service} not /error?
+ * Each service gets its own fallback URL so we can return service-specific messages.
+ * The circuit breaker config references: fallbackUri: forward:/fallback/user-service
+ * Gateway internally forwards to this controller when the circuit opens.
  */
 @RestController
 @RequestMapping("/fallback")
@@ -60,13 +60,13 @@ public class FallbackController {
     private ResponseEntity<Map<String, Object>> fallback(String service, String description) {
         log.warn("[Gateway Fallback] Circuit open for service: {}", service);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
-            "success",     false,
-            "status",      503,
-            "service",     service,
-            "description", description,
-            "message",     service + " is temporarily unavailable. Please try again in a moment.",
-            "timestamp",   LocalDateTime.now().toString(),
-            "action",      "The team has been notified. Retry in 10-30 seconds."
+                "success", false,
+                "status", 503,
+                "service", service,
+                "description", description,
+                "message", service + " is temporarily unavailable. Please try again in a moment.",
+                "timestamp", LocalDateTime.now().toString(),
+                "action", "The team has been notified. Retry in 10-30 seconds."
         ));
     }
 }

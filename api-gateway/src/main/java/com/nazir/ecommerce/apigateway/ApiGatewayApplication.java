@@ -32,7 +32,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  *   5. Request/Response Logging
  *      Every request logged with traceId, method, path, duration, status.
  *
- * LEARNING POINT — Why NOT @EnableDiscoveryClient sometimes skipped?
+ * — Why NOT @EnableDiscoveryClient sometimes skipped?
  *   Gateway uses lb:// URIs to resolve services via Eureka/Consul.
  *   @EnableDiscoveryClient tells Spring to register with and poll the registry.
  *   Without it: lb:// URIs fail (no registry to resolve from).

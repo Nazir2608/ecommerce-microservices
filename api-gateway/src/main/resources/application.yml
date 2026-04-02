@@ -37,7 +37,7 @@ spring:
 
       # ── Resilience4j circuit breaker config ────────────────────────────
       #
-      # LEARNING POINT — Gateway circuit breaker:
+      #  — Gateway circuit breaker:
       #   Each downstream service gets its own named circuit breaker.
       #   They are independent: product-service being down doesn't affect order-service CB.
       #   State is tracked per service per gateway instance.
@@ -70,7 +70,7 @@ jwt:
 
 # ── Resilience4j circuit breakers ─────────────────────────────────────────────
 #
-# LEARNING POINT — Circuit breaker states at the gateway:
+#  — Circuit breaker states at the gateway:
 #
 #   CLOSED   → normal: all requests pass through to downstream service
 #   OPEN     → service is failing: all requests get fallback instantly (no network call)

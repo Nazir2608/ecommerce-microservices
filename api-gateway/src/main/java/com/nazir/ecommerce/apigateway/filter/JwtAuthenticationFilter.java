@@ -21,39 +21,39 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * JWT Authentication GatewayFilter.
- *
+ * <p>
  * ══════════════════════════════════════════════════════════════════════════
- * LEARNING POINT — GatewayFilter vs GlobalFilter:
- *
- *   GlobalFilter  → applied to ALL routes automatically (LoggingFilter uses this)
- *   GatewayFilter → applied to specific routes via configuration (JwtAuthenticationFilter)
- *
- *   We use GatewayFilter so public routes (login, register, product catalog)
- *   bypass JWT validation while protected routes (orders, user profile) enforce it.
- *
+ * — GatewayFilter vs GlobalFilter:
+ * <p>
+ * GlobalFilter  → applied to ALL routes automatically (LoggingFilter uses this)
+ * GatewayFilter → applied to specific routes via configuration (JwtAuthenticationFilter)
+ * <p>
+ * We use GatewayFilter so public routes (login, register, product catalog)
+ * bypass JWT validation while protected routes (orders, user profile) enforce it.
+ * <p>
  * ══════════════════════════════════════════════════════════════════════════
- * LEARNING POINT — Why validate JWT at the gateway (not in each service)?
- *
- *   Without gateway auth:
- *     Every service must import JWT library, duplicate validation logic,
- *     manage the same secret key — 5 services × 50 lines = 250 lines of duplication.
- *
- *   With gateway auth:
- *     JWT validated ONCE here.
- *     Gateway extracts userId + email → adds X-Auth-User-Id and X-Auth-User-Email headers.
- *     Services read those trusted headers — zero JWT code in downstream services.
- *
- *   Security assumption:
- *     Services must be on an internal network (not accessible from internet directly).
- *     If a client bypasses the gateway and hits a service directly, they could
- *     forge X-Auth-User-Id. In production: use mTLS or a service mesh for this layer.
- *
+ * — Why validate JWT at the gateway (not in each service)?
+ * <p>
+ * Without gateway auth:
+ * Every service must import JWT library, duplicate validation logic,
+ * manage the same secret key — 5 services × 50 lines = 250 lines of duplication.
+ * <p>
+ * With gateway auth:
+ * JWT validated ONCE here.
+ * Gateway extracts userId + email → adds X-Auth-User-Id and X-Auth-User-Email headers.
+ * Services read those trusted headers — zero JWT code in downstream services.
+ * <p>
+ * Security assumption:
+ * Services must be on an internal network (not accessible from internet directly).
+ * If a client bypasses the gateway and hits a service directly, they could
+ * forge X-Auth-User-Id. In production: use mTLS or a service mesh for this layer.
+ * <p>
  * ══════════════════════════════════════════════════════════════════════════
- * LEARNING POINT — Reactive filter (Mono<Void>):
- *   Gateway is built on Project Reactor (non-blocking).
- *   Filters return Mono<Void> — they chain asynchronously.
- *   chain.filter(request) = "pass this request to the next filter in the chain".
- *   exchange.getResponse().setComplete() = "stop here, send this response".
+ * — Reactive filter (Mono<Void>):
+ * Gateway is built on Project Reactor (non-blocking).
+ * Filters return Mono<Void> — they chain asynchronously.
+ * chain.filter(request) = "pass this request to the next filter in the chain".
+ * exchange.getResponse().setComplete() = "stop here, send this response".
  */
 @Component
 @Slf4j
@@ -99,8 +99,8 @@ public class JwtAuthenticationFilter
 
             // ── Step 3: Extract identity claims ───────────────────────────
             String userId = claims.getSubject();
-            String email  = claims.get("email", String.class);
-            String roles  = claims.get("roles", String.class);
+            String email = claims.get("email", String.class);
+            String roles = claims.get("roles", String.class);
 
             if (userId == null || userId.isBlank()) {
                 return unauthorized(exchange, "Token missing subject (userId)");
@@ -108,9 +108,9 @@ public class JwtAuthenticationFilter
 
             // ── Step 4: Forward identity as headers to downstream ─────────
             ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-Auth-User-Id",    userId)
-                    .header("X-Auth-User-Email", email  != null ? email  : "")
-                    .header("X-Auth-User-Roles", roles  != null ? roles  : "")
+                    .header("X-Auth-User-Id", userId)
+                    .header("X-Auth-User-Email", email != null ? email : "")
+                    .header("X-Auth-User-Roles", roles != null ? roles : "")
                     .build();
 
             log.debug("[Gateway] Authenticated userId={} path={}", userId, request.getPath());

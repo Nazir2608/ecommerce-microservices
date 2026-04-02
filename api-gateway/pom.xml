@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>api-gateway</artifactId>
-    <n>Nazir :: API Gateway</n>
+    <name>Nazir :: API Gateway</name>
     <description>
         Spring Cloud Gateway — single entry point for all external traffic.
         JWT validation, per-IP rate limiting (Redis), circuit breaker fallbacks, CORS.
