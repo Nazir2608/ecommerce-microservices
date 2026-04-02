@@ -1,36 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.nazir.ecommerce</groupId>
         <artifactId>ecommerce-microservices</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <artifactId>api-gateway</artifactId>
-    <name>Nazir :: API Gateway</name>
+    <n>Nazir :: API Gateway</n>
+    <description>
+        Spring Cloud Gateway — single entry point for all external traffic.
+        JWT validation, per-IP rate limiting (Redis), circuit breaker fallbacks, CORS.
+        IMPORTANT: Uses WebFlux (Netty/reactive) — NOT spring-boot-starter-web.
+    </description>
+
     <dependencies>
+        <!--
+            LEARNING POINT — spring-cloud-starter-gateway vs spring-boot-starter-web:
+            Gateway uses Project Reactor + Netty (non-blocking, reactive).
+            You CANNOT add spring-boot-starter-web here — it would conflict.
+            All Gateway code must use reactive types (Mono, Flux, ServerWebExchange).
+        -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
+
+        <!-- Eureka: resolve lb://service-name → actual IP:PORT -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
+
+        <!-- Config server: centralised configuration -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+
+        <!--
+            LEARNING POINT — Reactive Redis (spring-boot-starter-data-redis-reactive):
+            Gateway is reactive — must use reactive Redis client (Lettuce reactive).
+            The rate limiter RequestRateLimiter filter uses Redis to track request counts.
+            Non-reactive Redis would block the event loop — defeats the purpose.
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
+
+        <!-- Circuit breaker for gateway (reactor-based) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
         </dependency>
+
+        <!-- JWT validation in the gateway filter -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -45,7 +75,25 @@
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>

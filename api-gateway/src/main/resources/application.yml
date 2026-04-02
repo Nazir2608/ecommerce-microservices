@@ -1,48 +1,138 @@
-server:
-  port: 8080
 spring:
   application:
     name: api-gateway
   config:
     import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
+
+  # ── Gateway route config (rate limiter + YAML-based filters) ─────────────
   cloud:
     gateway:
+      # Discovery locator: auto-generate routes for Eureka-registered services
+      # lb://service-name → auto-resolved. Disabled here; we define explicit routes.
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
+
+      # Global default filters applied to ALL routes
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      # Rate limiting on public product routes (from application.yml)
       routes:
-        - id: user-service
-          uri: lb://user-service
+        - id: product-service-public-ratelimit
+          uri: lb://product-service
           predicates:
-            - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/users/**
+            - Path=/api/v1/products/**
+            - Method=GET
           filters:
-            - name: CircuitBreaker
-              args:
-                name: user-service-cb
-                fallbackUri: forward:/fallback/user-service
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
                 key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: product-service-cb
+                fallbackUri: forward:/fallback/product-service
+
+      # ── Resilience4j circuit breaker config ────────────────────────────
+      #
+      # LEARNING POINT — Gateway circuit breaker:
+      #   Each downstream service gets its own named circuit breaker.
+      #   They are independent: product-service being down doesn't affect order-service CB.
+      #   State is tracked per service per gateway instance.
+      httpserver:
+        error:
+          include-message: always
+
+  # ── Reactive Redis (required for rate limiting + WebFlux) ────────────────
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-jwt:
-  secret: ${JWT_SECRET:NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+      host:     ${REDIS_HOST:localhost}
+      port:     ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:nazirredis}
+
+server:
+  port: ${SERVER_PORT:8080}
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# ── JWT (same secret as user-service) ────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+
+# ── Resilience4j circuit breakers ─────────────────────────────────────────────
+#
+# LEARNING POINT — Circuit breaker states at the gateway:
+#
+#   CLOSED   → normal: all requests pass through to downstream service
+#   OPEN     → service is failing: all requests get fallback instantly (no network call)
+#   HALF-OPEN → after 10s: allow 5 test requests to check if service recovered
+#
+#   The gateway CB wraps the Feign/HTTP call.
+#   If 5 of last 10 calls fail → OPEN → fallback called for all subsequent requests.
+#   Clients see a consistent 503 JSON response instead of random timeouts.
+#
 resilience4j:
   circuitbreaker:
     configs:
       default:
+        slidingWindowType: COUNT_BASED
         slidingWindowSize: 10
+        minimumNumberOfCalls: 5
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+        slowCallDurationThreshold: 5s
+        slowCallRateThreshold: 80
+        registerHealthIndicator: true
+    instances:
+      user-service-cb:         { baseConfig: default }
+      product-service-cb:      { baseConfig: default }
+      order-service-cb:        { baseConfig: default }
+      payment-service-cb:      { baseConfig: default }
+      notification-service-cb: { baseConfig: default }
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 10s       # cancel request if downstream takes >10s
+    instances:
+      user-service-cb:         { baseConfig: default }
+      product-service-cb:      { baseConfig: default }
+      order-service-cb:        { baseConfig: default }
+      payment-service-cb:      { baseConfig: default }
+      notification-service-cb: { baseConfig: default }
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true    # exposes /actuator/gateway/routes
+  health:
+    circuitbreakers:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    io.github.resilience4j: INFO
