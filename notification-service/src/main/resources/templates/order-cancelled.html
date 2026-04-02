@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Cancelled</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+        .wrapper { max-width:600px; margin:40px auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+        .header  { background:#1B3A6B; padding:32px 40px; text-align:center; }
+        .header h1 { color:#fff; margin:0; font-size:24px; }
+        .body    { padding:40px; color:#374151; }
+        .body h2 { color:#1B3A6B; margin-top:0; }
+        .highlight { background:#DBEAFE; border-left:4px solid #2563EB; padding:16px; border-radius:4px; margin:20px 0; }
+        .btn     { display:inline-block; background:#2563EB; color:#fff; padding:12px 28px; border-radius:6px; text-decoration:none; font-weight:bold; margin:20px 0; }
+        .footer  { background:#f9fafb; padding:20px 40px; text-align:center; color:#9CA3AF; font-size:13px; border-top:1px solid #e5e7eb; }
+        .tag     { display:inline-block; background:#DCFCE7; color:#16A34A; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:bold; }
+        .warn    { background:#FEE2E2; border-left:4px solid #DC2626; padding:16px; border-radius:4px; margin:20px 0; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header" style="background:#6B7280;"><h1>Order Cancelled</h1></div>
+    <div class="body">
+        <h2>Your order has been cancelled</h2>
+        <div class="highlight" style="background:#F3F4F6;border-color:#6B7280;">
+            <strong>Order Number:</strong> <span th:text="${orderNumber}">ORD-XXXX</span><br>
+            <strong>Amount:</strong> <span th:text="${totalAmount}">/bin/sh.00</span><br>
+            <strong>Reason:</strong> <span th:text="${reason}">Cancelled</span>
+        </div>
+        <p>If a payment was made, your refund will be processed within 3-5 business days.</p>
+    </div>
+    <div class="footer">© 2025 Nazir E-Commerce</div>
+</div>
+</body>
+</html>

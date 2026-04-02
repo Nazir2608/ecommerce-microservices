@@ -1,11 +1,73 @@
 spring:
   application:
     name: notification-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://configuser:configpassword@localhost:8888}
+
+  # ── JavaMailSender — points to Mailhog in dev ─────────────────────────────
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+    test-connection: false  # don't fail startup if Mailhog not ready yet
+
+  # ── Thymeleaf ─────────────────────────────────────────────────────────────
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    cache: false   # reload templates on every send (dev only — set true in prod)
+
+  # ── Redis (dedup only) ────────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:nazirredis}
+
+  # ── Kafka consumers ───────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
 server:
-  port: 0  # random port — placeholder until Phase 2
+  port: ${SERVER_PORT:8084}
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG
+    org.thymeleaf: WARN
