@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>notification-service</artifactId>
-    <n>Nazir :: Notification Service</n>
+    <name>Nazir :: Notification Service</name>
     <description>
         Fan-in Kafka consumer. Listens to user.events, order.events, payment.events.
         Sends HTML emails via JavaMailSender + Thymeleaf.
