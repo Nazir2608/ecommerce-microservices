@@ -23,14 +23,13 @@
 
     <modules>
         <module>user-service</module>
-        <!--  Uncomment as you build each phase:  -->
-        <!--  <module>config-server</module>       -->
-        <!--  <module>service-registry</module>    -->
-            <module>api-gateway</module>
-            <module>product-service</module>
-            <module>order-service</module>
-            <module>payment-service</module>
-         <module>notification-service</module>
+        <module>config-server</module>
+        <module>service-registry</module>
+        <module>api-gateway</module>
+        <module>product-service</module>
+        <module>order-service</module>
+        <module>payment-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

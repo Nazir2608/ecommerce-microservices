@@ -249,6 +249,7 @@ services:
 
   # ── Service Registry (Eureka) ─────────────────────────────────────────────────
   service-registry:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-service-registry:latest
     build:
       context: .
       dockerfile: service-registry/Dockerfile
@@ -270,6 +271,7 @@ services:
 
   # ── Config Server ─────────────────────────────────────────────────────────────
   config-server:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-config-server:latest
     build:
       context: .
       dockerfile: config-server/Dockerfile
@@ -294,6 +296,7 @@ services:
 
   # ── API Gateway ───────────────────────────────────────────────────────────────
   api-gateway:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-api-gateway:latest
     build:
       context: .
       dockerfile: api-gateway/Dockerfile
@@ -323,6 +326,7 @@ services:
 
   # ── User Service ──────────────────────────────────────────────────────────────
   user-service:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-user-service:latest
     build:
       context: .
       dockerfile: user-service/Dockerfile
@@ -362,6 +366,7 @@ services:
 
   # ── Product Service ───────────────────────────────────────────────────────────
   product-service:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-product-service:latest
     build:
       context: .
       dockerfile: product-service/Dockerfile
@@ -398,6 +403,7 @@ services:
 
   # ── Order Service ─────────────────────────────────────────────────────────────
   order-service:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-order-service:latest
     build:
       context: .
       dockerfile: order-service/Dockerfile
@@ -431,6 +437,7 @@ services:
 
   # ── Payment Service ───────────────────────────────────────────────────────────
   payment-service:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-payment-service:latest
     build:
       context: .
       dockerfile: payment-service/Dockerfile
@@ -464,6 +471,7 @@ services:
 
   # ── Notification Service ──────────────────────────────────────────────────────
   notification-service:
+    image: ghcr.io/${GHCR_USER:-you}/nazir-notification-service:latest
     build:
       context: .
       dockerfile: notification-service/Dockerfile
