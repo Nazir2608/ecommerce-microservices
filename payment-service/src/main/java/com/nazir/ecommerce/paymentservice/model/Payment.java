@@ -47,7 +47,7 @@ public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false, columnDefinition = "varchar(36)")
     private UUID id;
 
     /**
@@ -57,10 +57,10 @@ public class Payment {
     @Column(name = "idempotency_key", nullable = false, unique = true, length = 36, columnDefinition = "char(36)")
     private String idempotencyKey;    // = orderId.toString()
 
-    @Column(name = "order_id", nullable = false, length = 36)
+    @Column(name = "order_id", nullable = false, columnDefinition = "varchar(36)")
     private UUID orderId;
 
-    @Column(name = "user_id", nullable = false, length = 36)
+    @Column(name = "user_id", nullable = false, columnDefinition = "varchar(36)")
     private UUID userId;
 
     @Column(name = "user_email", nullable = false, length = 255)

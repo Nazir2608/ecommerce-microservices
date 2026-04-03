@@ -1,19 +1,118 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Prometheus scrape configuration — Phase 7
+#
+# LEARNING POINT — Prometheus pull model:
+#   Prometheus does NOT receive metrics. It PULLS them by calling
+#   /actuator/prometheus on each service every 15 seconds.
+#
+#   Pros: services don't need to know Prometheus exists
+#         Prometheus controls the scrape interval
+#         One scrape endpoint → works with any monitoring tool
+#   Cons: if a service is behind a firewall, Prometheus can't reach it
+#         (Push gateway exists for this case — not needed here)
+#
+# LEARNING POINT — Labels:
+#   Labels are key-value pairs attached to every metric scraped from a target.
+#   { job="user-service", instance="localhost:8081" }
+#   In Grafana: filter by job="user-service" to see only that service's metrics.
+# ─────────────────────────────────────────────────────────────────────────────
+
 global:
-  scrape_interval: 15s
+  scrape_interval:     15s   # pull metrics every 15 seconds
+  evaluation_interval: 15s   # evaluate alert rules every 15 seconds
   external_labels:
     project: 'nazir-ecommerce'
+    environment: 'development'
+
+# Load alert rules
+rule_files:
+  - "alert_rules.yml"
+
+# Alertmanager (optional — add if you want email/Slack alerts)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
 
 scrape_configs:
+
+  # ── Prometheus itself ──────────────────────────────────────────────────────
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
 
+  # ── API Gateway ────────────────────────────────────────────────────────────
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s   # scrape gateway more frequently (entry point)
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          service: 'api-gateway'
+          tier: 'platform'
+    # Relabel: rename instance to service name for cleaner Grafana labels
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_.*|process_.*|system_.*'
+        action: keep
+
+  # ── User Service ───────────────────────────────────────────────────────────
   - job_name: 'user-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['user-service:8081']
+        labels:
+          service: 'user-service'
+          tier: 'business'
+          database: 'postgresql'
 
-  - job_name: 'api-gateway'
+  # ── Product Service ────────────────────────────────────────────────────────
+  - job_name: 'product-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['api-gateway:8080']
+      - targets: ['product-service:8085']
+        labels:
+          service: 'product-service'
+          tier: 'business'
+          database: 'mongodb'
+          cache: 'redis'
+
+  # ── Order Service ──────────────────────────────────────────────────────────
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['order-service:8082']
+        labels:
+          service: 'order-service'
+          tier: 'business'
+          database: 'postgresql'
+
+  # ── Payment Service ────────────────────────────────────────────────────────
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['payment-service:8083']
+        labels:
+          service: 'payment-service'
+          tier: 'business'
+          database: 'mysql'
+
+  # ── Notification Service ───────────────────────────────────────────────────
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8084']
+        labels:
+          service: 'notification-service'
+          tier: 'business'
+
+  # ── Service Registry ───────────────────────────────────────────────────────
+  - job_name: 'service-registry'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['service-registry:8761']
+        labels:
+          service: 'service-registry'
+          tier: 'platform'

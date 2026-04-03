@@ -6,6 +6,7 @@ import com.nazir.ecommerce.userservice.dto.request.RegisterRequest;
 import com.nazir.ecommerce.userservice.dto.response.AuthResponse;
 import com.nazir.ecommerce.userservice.dto.response.UserResponse;
 import com.nazir.ecommerce.userservice.exception.UserAlreadyExistsException;
+import com.nazir.ecommerce.userservice.security.JwtTokenProvider;
 import com.nazir.ecommerce.userservice.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -60,6 +61,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
 
     private static final String REGISTER_URL = "/api/v1/auth/register";
     private static final String LOGIN_URL = "/api/v1/auth/login";
