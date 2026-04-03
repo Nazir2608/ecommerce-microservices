@@ -1,5 +1,3 @@
-version: "3.9"
-
 # ─────────────────────────────────────────────────────────────────────────────
 #  E-Commerce Microservices — Docker Compose
 #
@@ -238,6 +236,9 @@ services:
     depends_on: [prometheus]
     ports:
       - "3001:3000"
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -249,8 +250,8 @@ services:
   # ── Service Registry (Eureka) ─────────────────────────────────────────────────
   service-registry:
     build:
-      context: ./service-registry
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: service-registry/Dockerfile
     container_name: nazir-service-registry
     networks: [nazir-network]
     ports:
@@ -258,8 +259,10 @@ services:
     environment:
       EUREKA_USERNAME: ${EUREKA_USERNAME:-eurekauser}
       EUREKA_PASSWORD: ${EUREKA_PASSWORD:-eurekapassword}
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://eurekauser:eurekapassword@localhost:8761/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://eurekauser:eurekapassword@localhost:8761/actuator/health"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -268,8 +271,8 @@ services:
   # ── Config Server ─────────────────────────────────────────────────────────────
   config-server:
     build:
-      context: ./config-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: config-server/Dockerfile
     container_name: nazir-config-server
     networks: [nazir-network]
     depends_on:
@@ -281,8 +284,10 @@ services:
       CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME:-configuser}
       CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD:-configpassword}
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker,native
     healthcheck:
-      test: ["CMD", "curl", "-f", "-u", "configuser:configpassword", "http://localhost:8888/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--header=Authorization: Basic Y29uZmlndXNlcjpjb25maWdwYXNzd29yZA==", "http://localhost:8888/actuator/health"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -290,8 +295,8 @@ services:
   # ── API Gateway ───────────────────────────────────────────────────────────────
   api-gateway:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: nazir-api-gateway
     networks: [nazir-network]
     depends_on:
@@ -309,6 +314,8 @@ services:
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
       JWT_SECRET: ${JWT_SECRET:-NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BUSINESS SERVICES
@@ -317,8 +324,8 @@ services:
   # ── User Service ──────────────────────────────────────────────────────────────
   user-service:
     build:
-      context: ./user-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: nazir-user-service
     networks: [nazir-network]
     depends_on:
@@ -344,8 +351,147 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET:-NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Product Service ───────────────────────────────────────────────────────────
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    container_name: nazir-product-service
+    networks: [ nazir-network ]
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      MONGODB_URI: mongodb://${MONGO_USER:-mongouser}:${MONGO_PASSWORD:-mongopassword}@mongodb:27017/productdb?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8085/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Order Service ─────────────────────────────────────────────────────────────
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    container_name: nazir-order-service
+    networks: [ nazir-network ]
+    depends_on:
+      config-server:
+        condition: service_healthy
+      orderdb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      DB_URL: jdbc:postgresql://orderdb:5432/orderdb
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASS: ${POSTGRES_PASSWORD:-postgres}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Payment Service ───────────────────────────────────────────────────────────
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    container_name: nazir-payment-service
+    networks: [ nazir-network ]
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      DB_URL: jdbc:mysql://mysql:3306/paymentdb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USER: root
+      DB_PASS: ${MYSQL_ROOT_PASSWORD:-root}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Notification Service ──────────────────────────────────────────────────────
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: nazir-notification-service
+    networks: [ nazir-network ]
+    depends_on:
+      config-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      ZIPKIN_URL: http://zipkin:9411
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -389,6 +535,9 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    ports:
+      - "5044:5044/tcp"
+      - "5044:5044/udp"
     volumes:
       - ./infrastructure/logstash/pipeline:/usr/share/logstash/pipeline:ro
     environment:

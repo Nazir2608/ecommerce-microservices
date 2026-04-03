@@ -7,19 +7,19 @@ COPY pom.xml .
 RUN sed -i '/<modules>/,/<\/modules>/d' pom.xml
 
 # Copy submodule pom
-COPY user-service/pom.xml user-service/
+COPY service-registry/pom.xml service-registry/
 
 # Resolve dependencies for the submodule
-RUN mvn -f user-service/pom.xml dependency:go-offline -q
+RUN mvn -f service-registry/pom.xml dependency:go-offline -q
 
 # Copy submodule source
-COPY user-service/src user-service/src
+COPY service-registry/src service-registry/src
 
 # Build the submodule
-RUN mvn -f user-service/pom.xml package -DskipTests -q
+RUN mvn -f service-registry/pom.xml package -DskipTests -q
 
 # Extract layered JAR
-RUN java -Djarmode=layertools -jar user-service/target/*.jar extract --destination user-service/target/extracted
+RUN java -Djarmode=layertools -jar service-registry/target/*.jar extract --destination service-registry/target/extracted
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 RUN apk add --no-cache wget
@@ -28,16 +28,16 @@ USER appuser:appgroup
 WORKDIR /app
 
 # Copy layers from the correct path in builder
-COPY --from=builder /build/user-service/target/extracted/dependencies/          ./
-COPY --from=builder /build/user-service/target/extracted/spring-boot-loader/    ./
-COPY --from=builder /build/user-service/target/extracted/snapshot-dependencies/ ./
-COPY --from=builder /build/user-service/target/extracted/application/           ./
+COPY --from=builder /build/service-registry/target/extracted/dependencies/          ./
+COPY --from=builder /build/service-registry/target/extracted/spring-boot-loader/    ./
+COPY --from=builder /build/service-registry/target/extracted/snapshot-dependencies/ ./
+COPY --from=builder /build/service-registry/target/extracted/application/           ./
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://eurekauser:eurekapassword@localhost:8761/actuator/health || exit 1
 
-EXPOSE 8081
+EXPOSE 8761
 
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]

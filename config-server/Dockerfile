@@ -7,36 +7,37 @@ COPY pom.xml .
 RUN sed -i '/<modules>/,/<\/modules>/d' pom.xml
 
 # Copy submodule pom
-COPY payment-service/pom.xml payment-service/
+COPY config-server/pom.xml config-server/
 
 # Resolve dependencies for the submodule
-RUN mvn -f payment-service/pom.xml dependency:go-offline -q
+RUN mvn -f config-server/pom.xml dependency:go-offline -q
 
 # Copy submodule source
-COPY payment-service/src payment-service/src
+COPY config-server/src config-server/src
 
 # Build the submodule
-RUN mvn -f payment-service/pom.xml package -DskipTests -q
+RUN mvn -f config-server/pom.xml package -DskipTests -q
 
 # Extract layered JAR
-RUN java -Djarmode=layertools -jar payment-service/target/*.jar extract --destination payment-service/target/extracted
+RUN java -Djarmode=layertools -jar config-server/target/*.jar extract --destination config-server/target/extracted
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
+RUN apk add --no-cache wget
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser:appgroup
 WORKDIR /app
 
 # Copy layers from the correct path in builder
-COPY --from=builder /build/payment-service/target/extracted/dependencies/          ./
-COPY --from=builder /build/payment-service/target/extracted/spring-boot-loader/    ./
-COPY --from=builder /build/payment-service/target/extracted/snapshot-dependencies/ ./
-COPY --from=builder /build/payment-service/target/extracted/application/           ./
+COPY --from=builder /build/config-server/target/extracted/dependencies/          ./
+COPY --from=builder /build/config-server/target/extracted/spring-boot-loader/    ./
+COPY --from=builder /build/config-server/target/extracted/snapshot-dependencies/ ./
+COPY --from=builder /build/config-server/target/extracted/application/           ./
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8888/actuator/health || exit 1
 
-EXPOSE 8083
+EXPOSE 8888
 
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]
