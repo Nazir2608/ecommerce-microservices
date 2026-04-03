@@ -1,4 +1,4 @@
-package com.nazir.ecommerce.SERVICENAME.config;
+package com.nazir.ecommerce.userservice.config;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -11,32 +11,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Custom business metrics — registered with Micrometer.
- *
- * LEARNING POINT — Micrometer abstraction:
- *   Micrometer is a metrics facade (like SLF4J for logs).
- *   Code uses Micrometer API → metrics sent to Prometheus, Datadog, CloudWatch, etc.
- *   Changing the monitoring backend = change one dependency, zero code changes.
- *
- * LEARNING POINT — Metric types:
- *
- *   Counter  → monotonically increasing number (only goes up)
- *              Use for: orders placed, registrations, emails sent, errors
- *              PromQL: rate(orders_placed_total[5m]) → orders/sec
- *
- *   Timer    → measures duration + count of events
- *              Use for: payment processing time, gateway response time
- *              PromQL: histogram_quantile(0.95, rate(payment_duration_bucket[5m]))
- *
- *   Gauge    → current value (can go up AND down)
- *              Use for: active orders in PENDING state, queue depth, connected users
- *              PromQL: active_orders_gauge{status="PENDING"}
- *
- *   Summary  → similar to Timer but client-side quantiles (less accurate, less storage)
- *              Use rarely — prefer Timer with histogram.
- *
+ * <p>
+ * Micrometer abstraction:
+ * Micrometer is a metrics facade (like SLF4J for logs).
+ * Code uses Micrometer API → metrics sent to Prometheus, Datadog, CloudWatch, etc.
+ * Changing the monitoring backend = change one dependency, zero code changes.
+ * <p>
+ * Metric types:
+ * <p>
+ * Counter  → monotonically increasing number (only goes up)
+ * Use for: orders placed, registrations, emails sent, errors
+ * PromQL: rate(orders_placed_total[5m]) → orders/sec
+ * <p>
+ * Timer    → measures duration + count of events
+ * Use for: payment processing time, gateway response time
+ * PromQL: histogram_quantile(0.95, rate(payment_duration_bucket[5m]))
+ * <p>
+ * Gauge    → current value (can go up AND down)
+ * Use for: active orders in PENDING state, queue depth, connected users
+ * PromQL: active_orders_gauge{status="PENDING"}
+ * <p>
+ * Summary  → similar to Timer but client-side quantiles (less accurate, less storage)
+ * Use rarely — prefer Timer with histogram.
+ * <p>
  * USAGE: inject this bean into your service and call the methods.
- *   orderMetrics.incrementOrdersPlaced();
- *   orderMetrics.recordPaymentDuration(500, TimeUnit.MILLISECONDS);
+ * orderMetrics.incrementOrdersPlaced();
+ * orderMetrics.recordPaymentDuration(500, TimeUnit.MILLISECONDS);
  */
 @Component
 @Getter
@@ -61,7 +61,7 @@ public class CustomMetrics {
     // ── Gauges (current snapshot) ──────────────────────────────────────────
 
     private final AtomicInteger pendingOrdersCount = new AtomicInteger(0);
-    private final AtomicInteger activeUsersCount   = new AtomicInteger(0);
+    private final AtomicInteger activeUsersCount = new AtomicInteger(0);
 
     public CustomMetrics(MeterRegistry registry) {
 
@@ -125,14 +125,43 @@ public class CustomMetrics {
 
     // ── Convenience methods ────────────────────────────────────────────────
 
-    public void incrementOrdersPlaced()       { ordersPlaced.increment(); }
-    public void incrementPaymentSuccess()     { paymentSuccess.increment(); }
-    public void incrementPaymentFailure()     { paymentFailures.increment(); }
-    public void incrementUserRegistration()   { userRegistrations.increment(); }
-    public void incrementLoginFailure()       { loginFailures.increment(); }
-    public void incrementNotificationSent()   { notificationsSent.increment(); }
-    public void incrementCacheHit()           { cacheHits.increment(); }
-    public void incrementCacheMiss()          { cacheMisses.increment(); }
-    public void setPendingOrders(int count)   { pendingOrdersCount.set(count); }
-    public void setActiveUsers(int count)     { activeUsersCount.set(count); }
+    public void incrementOrdersPlaced() {
+        ordersPlaced.increment();
+    }
+
+    public void incrementPaymentSuccess() {
+        paymentSuccess.increment();
+    }
+
+    public void incrementPaymentFailure() {
+        paymentFailures.increment();
+    }
+
+    public void incrementUserRegistration() {
+        userRegistrations.increment();
+    }
+
+    public void incrementLoginFailure() {
+        loginFailures.increment();
+    }
+
+    public void incrementNotificationSent() {
+        notificationsSent.increment();
+    }
+
+    public void incrementCacheHit() {
+        cacheHits.increment();
+    }
+
+    public void incrementCacheMiss() {
+        cacheMisses.increment();
+    }
+
+    public void setPendingOrders(int count) {
+        pendingOrdersCount.set(count);
+    }
+
+    public void setActiveUsers(int count) {
+        activeUsersCount.set(count);
+    }
 }
