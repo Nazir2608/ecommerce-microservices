@@ -21,7 +21,7 @@
 
     <dependencies>
         <!--
-            LEARNING POINT — spring-cloud-starter-gateway vs spring-boot-starter-web:
+            spring-cloud-starter-gateway vs spring-boot-starter-web:
             Gateway uses Project Reactor + Netty (non-blocking, reactive).
             You CANNOT add spring-boot-starter-web here — it would conflict.
             All Gateway code must use reactive types (Mono, Flux, ServerWebExchange).
@@ -44,7 +44,7 @@
         </dependency>
 
         <!--
-            LEARNING POINT — Reactive Redis (spring-boot-starter-data-redis-reactive):
+             Reactive Redis (spring-boot-starter-data-redis-reactive):
             Gateway is reactive — must use reactive Redis client (Lettuce reactive).
             The rate limiter RequestRateLimiter filter uses Redis to track request counts.
             Non-reactive Redis would block the event loop — defeats the purpose.
@@ -92,6 +92,11 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

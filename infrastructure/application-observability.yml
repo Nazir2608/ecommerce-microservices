@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Observability configuration — merge into each service's application.yml
+#
+#  What each section does:
+#
+# management.tracing.sampling.probability: 1.0
+#   → Sample 100% of requests (dev). In prod: 0.1 = 10%.
+#   → Each sampled request gets a unique traceId that flows through all services.
+#
+# management.zipkin.tracing.endpoint
+#   → Micrometer sends completed traces (spans) to Zipkin here.
+#   → Zipkin stores them and lets you search by traceId.
+#
+# management.metrics.distribution.percentiles-histogram
+#   → Enables histogram buckets for histogram_quantile() in Prometheus.
+#   → Without this: you can't compute p95/p99 latency in Grafana.
+# ─────────────────────────────────────────────────────────────────────────────
+
+management:
+  # ── Actuator endpoints ────────────────────────────────────────────────────
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+          - prometheus    # ← Prometheus scrapes this
+          - env
+          - loggers       # ← change log level at runtime (no restart!)
+          - circuitbreakers
+          - httptrace
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    loggers:
+      enabled: true
+
+  # ── Distributed tracing (Micrometer → Zipkin) ────────────────────────────
+  tracing:
+    sampling:
+      probability: 1.0    # 100% in dev. Change to 0.05 (5%) in production.
+
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411}/api/v2/spans
+
+  # ── Metrics ───────────────────────────────────────────────────────────────
+  metrics:
+    tags:
+      application: ${spring.application.name}   # label on every metric
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true    # enables histogram_quantile() in PromQL
+        spring.data.repository.invocations: true
+      slo:                            # Service Level Objectives — alert when violated
+        http.server.requests: 100ms, 500ms, 1s, 2s
+    export:
+      prometheus:
+        enabled: true
+
+# ── Logging with traceId in every line ───────────────────────────────────────
+logging:
+  pattern:
+    # %X{traceId} and %X{spanId} are injected by Micrometer into SLF4J MDC
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG

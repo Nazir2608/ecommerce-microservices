@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'Nazir E-Commerce'
+    orgId: 1
+    folder: 'E-Commerce Microservices'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

@@ -1,0 +1,138 @@
+package com.nazir.ecommerce.SERVICENAME.config;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Gauge;
+import lombok.Getter;
+import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Custom business metrics — registered with Micrometer.
+ *
+ * LEARNING POINT — Micrometer abstraction:
+ *   Micrometer is a metrics facade (like SLF4J for logs).
+ *   Code uses Micrometer API → metrics sent to Prometheus, Datadog, CloudWatch, etc.
+ *   Changing the monitoring backend = change one dependency, zero code changes.
+ *
+ * LEARNING POINT — Metric types:
+ *
+ *   Counter  → monotonically increasing number (only goes up)
+ *              Use for: orders placed, registrations, emails sent, errors
+ *              PromQL: rate(orders_placed_total[5m]) → orders/sec
+ *
+ *   Timer    → measures duration + count of events
+ *              Use for: payment processing time, gateway response time
+ *              PromQL: histogram_quantile(0.95, rate(payment_duration_bucket[5m]))
+ *
+ *   Gauge    → current value (can go up AND down)
+ *              Use for: active orders in PENDING state, queue depth, connected users
+ *              PromQL: active_orders_gauge{status="PENDING"}
+ *
+ *   Summary  → similar to Timer but client-side quantiles (less accurate, less storage)
+ *              Use rarely — prefer Timer with histogram.
+ *
+ * USAGE: inject this bean into your service and call the methods.
+ *   orderMetrics.incrementOrdersPlaced();
+ *   orderMetrics.recordPaymentDuration(500, TimeUnit.MILLISECONDS);
+ */
+@Component
+@Getter
+public class CustomMetrics {
+
+    // ── Counters (ever-increasing) ─────────────────────────────────────────
+
+    private final Counter ordersPlaced;
+    private final Counter paymentSuccess;
+    private final Counter paymentFailures;
+    private final Counter userRegistrations;
+    private final Counter loginFailures;
+    private final Counter notificationsSent;
+    private final Counter cacheHits;
+    private final Counter cacheMisses;
+
+    // ── Timers (duration + count) ──────────────────────────────────────────
+
+    private final Timer paymentDuration;
+    private final Timer orderPlacementDuration;
+
+    // ── Gauges (current snapshot) ──────────────────────────────────────────
+
+    private final AtomicInteger pendingOrdersCount = new AtomicInteger(0);
+    private final AtomicInteger activeUsersCount   = new AtomicInteger(0);
+
+    public CustomMetrics(MeterRegistry registry) {
+
+        // Counters — tags allow filtering in Grafana
+        ordersPlaced = Counter.builder("orders.placed.total")
+                .description("Total number of orders placed")
+                .register(registry);
+
+        paymentSuccess = Counter.builder("payment.success.total")
+                .description("Total successful payments")
+                .register(registry);
+
+        paymentFailures = Counter.builder("payment.failures.total")
+                .description("Total failed payments")
+                .tag("reason", "unknown")
+                .register(registry);
+
+        userRegistrations = Counter.builder("user.registrations.total")
+                .description("Total user registrations")
+                .register(registry);
+
+        loginFailures = Counter.builder("login.failures.total")
+                .description("Total failed login attempts")
+                .register(registry);
+
+        notificationsSent = Counter.builder("notifications.sent.total")
+                .description("Total notifications sent")
+                .register(registry);
+
+        cacheHits = Counter.builder("cache.hits.total")
+                .description("Redis cache hits")
+                .tag("cache", "products")
+                .register(registry);
+
+        cacheMisses = Counter.builder("cache.misses.total")
+                .description("Redis cache misses")
+                .tag("cache", "products")
+                .register(registry);
+
+        // Timers — automatically creates _count, _sum, _bucket metrics in Prometheus
+        paymentDuration = Timer.builder("payment.processing.duration")
+                .description("Time to process payment via gateway")
+                .publishPercentileHistogram()  // enables histogram_quantile() in PromQL
+                .register(registry);
+
+        orderPlacementDuration = Timer.builder("order.placement.duration")
+                .description("End-to-end time to place an order (including Feign calls)")
+                .publishPercentileHistogram()
+                .register(registry);
+
+        // Gauges — backed by AtomicInteger so they reflect current value
+        Gauge.builder("active.orders.gauge", pendingOrdersCount, AtomicInteger::get)
+                .description("Number of orders currently in PENDING state")
+                .tag("status", "PENDING")
+                .register(registry);
+
+        Gauge.builder("active.users.gauge", activeUsersCount, AtomicInteger::get)
+                .description("Number of users with active sessions (estimate)")
+                .register(registry);
+    }
+
+    // ── Convenience methods ────────────────────────────────────────────────
+
+    public void incrementOrdersPlaced()       { ordersPlaced.increment(); }
+    public void incrementPaymentSuccess()     { paymentSuccess.increment(); }
+    public void incrementPaymentFailure()     { paymentFailures.increment(); }
+    public void incrementUserRegistration()   { userRegistrations.increment(); }
+    public void incrementLoginFailure()       { loginFailures.increment(); }
+    public void incrementNotificationSent()   { notificationsSent.increment(); }
+    public void incrementCacheHit()           { cacheHits.increment(); }
+    public void incrementCacheMiss()          { cacheMisses.increment(); }
+    public void setPendingOrders(int count)   { pendingOrdersCount.set(count); }
+    public void setActiveUsers(int count)     { activeUsersCount.set(count); }
+}

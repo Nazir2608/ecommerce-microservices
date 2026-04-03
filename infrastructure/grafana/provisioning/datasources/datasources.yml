@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Grafana datasource auto-provisioning
+#
+#  Grafana provisioning:
+#   Placing files in /etc/grafana/provisioning/ configures Grafana automatically
+#   on startup — no manual UI clicks needed.
+#   This makes the setup reproducible across machines and CI environments.
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: POST
+
+  - name: Zipkin
+    type: zipkin
+    access: proxy
+    url: http://zipkin:9411
+    editable: true
