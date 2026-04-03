@@ -1,0 +1,117 @@
+name: Master CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '.gitignore'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      user-service: ${{ steps.filter.outputs.user-service }}
+      product-service: ${{ steps.filter.outputs.product-service }}
+      order-service: ${{ steps.filter.outputs.order-service }}
+      payment-service: ${{ steps.filter.outputs.payment-service }}
+      notification-service: ${{ steps.filter.outputs.notification-service }}
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      config-server: ${{ steps.filter.outputs.config-server }}
+      service-registry: ${{ steps.filter.outputs.service-registry }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            user-service:
+              - 'user-service/**'
+              - 'pom.xml'
+            product-service:
+              - 'product-service/**'
+              - 'pom.xml'
+            order-service:
+              - 'order-service/**'
+              - 'pom.xml'
+            payment-service:
+              - 'payment-service/**'
+              - 'pom.xml'
+            notification-service:
+              - 'notification-service/**'
+              - 'pom.xml'
+            api-gateway:
+              - 'api-gateway/**'
+              - 'pom.xml'
+            config-server:
+              - 'config-server/**'
+              - 'pom.xml'
+            service-registry:
+              - 'service-registry/**'
+              - 'pom.xml'
+
+  # CI for each service (triggered only if changes detected)
+  user-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.user-service == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: user-service
+    secrets: inherit
+
+  product-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.product-service == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: product-service
+    secrets: inherit
+
+  order-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.order-service == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: order-service
+    secrets: inherit
+
+  payment-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.payment-service == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: payment-service
+    secrets: inherit
+
+  notification-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.notification-service == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: notification-service
+    secrets: inherit
+
+  api-gateway:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api-gateway == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: api-gateway
+    secrets: inherit
+
+  config-server:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.config-server == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: config-server
+    secrets: inherit
+
+  service-registry:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.service-registry == 'true'
+    uses: ./.github/workflows/reusable-ci-service.yml
+    with:
+      service_name: service-registry
+    secrets: inherit

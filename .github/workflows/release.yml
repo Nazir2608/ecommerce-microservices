@@ -1,0 +1,55 @@
+name: Release & Production Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build-all:
+    needs: release
+    strategy:
+      matrix:
+        service: [user-service, product-service, order-service, payment-service, notification-service, api-gateway, config-server, service-registry]
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      service_name: ${{ matrix.service }}
+      image_tag: ${{ github.ref_name }}
+    secrets: inherit
+
+  deploy-prod:
+    needs: build-all
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy All to Production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/ecommerce
+            # Tag-based deployment: pull all v* images
+            docker compose pull
+            # Rolling restart
+            docker compose up -d --no-deps --force-recreate
+            # Wait and check
+            sleep 30
+            docker compose ps

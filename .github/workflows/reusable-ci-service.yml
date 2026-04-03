@@ -1,0 +1,54 @@
+name: Reusable CI Service
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+    secrets:
+      STAGING_HOST:
+        required: true
+      STAGING_USER:
+        required: true
+      STAGING_SSH_KEY:
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run unit tests
+        run: mvn -pl ${{ inputs.service_name }} test
+
+  build-push:
+    needs: test
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      service_name: ${{ inputs.service_name }}
+      image_tag: ${{ github.sha }}
+
+  deploy:
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/ecommerce
+            bash scripts/deploy.sh ${{ inputs.service_name }}
