@@ -1,0 +1,7 @@
+spring:
+  mail:
+    host: mailhog
+    port: 1025
+  data:
+    redis:
+      host: redis

@@ -1,8 +1,0 @@
-# Served to user-service instances by Config Server
-jwt:
-  secret: ${JWT_SECRET:NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
-  access-token-expiry-ms: 86400000
-  refresh-token-expiry-ms: 604800000
-logging:
-  level:
-    com.nazir.ecommerce: DEBUG

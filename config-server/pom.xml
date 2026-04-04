@@ -1,33 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.nazir.ecommerce</groupId>
         <artifactId>ecommerce-microservices</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <artifactId>config-server</artifactId>
-    <name>Nazir :: Config Server</name>
+    <n>Nazir :: Config Server</n>
+    <description>
+        Spring Cloud Config Server — centralised configuration for all services.
+        Uses native (classpath) backend in dev; switch to Git backend for prod.
+        Secured with Basic Auth. Registered with Eureka so services discover it.
+    </description>
+
     <dependencies>
+        <!--
+            LEARNING POINT — spring-cloud-config-server:
+            Turns this app into a Config Server with @EnableConfigServer.
+            Services call: GET http://config-server:8888/{app}/{profile}
+            Response: merged properties for that app + profile.
+            e.g. GET /order-service/docker → returns order-service.yml
+                                             merged with application.yml
+        -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-config-server</artifactId>
         </dependency>
+
+        <!-- Register with Eureka so services can find it via lb://config-server -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
+
+        <!-- Secure config endpoints with Basic Auth -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>

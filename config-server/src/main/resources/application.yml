@@ -1,5 +1,3 @@
-server:
-  port: 8888
 spring:
   application:
     name: config-server
@@ -7,14 +5,76 @@ spring:
     user:
       name: ${CONFIG_SERVER_USERNAME:configuser}
       password: ${CONFIG_SERVER_PASSWORD:configpassword}
+
   cloud:
     config:
       server:
+        # ── Native backend: reads from classpath:/configs/ ─────────────────
+        #
+        # LEARNING POINT — Native backend:
+        #   searchLocations: classpath:/configs/
+        #   → Config files are bundled INSIDE this JAR
+        #   → No external Git needed
+        #   → Best for dev and small teams
+        #
+        # To switch to Git (recommended for production):
+        #   Comment out native: {} and uncomment git: section below
+        #
         native:
-          search-locations: classpath:/config
+          search-locations: classpath:/configs/
+
+        # ── Git backend (uncomment for production) ─────────────────────────
+        # git:
+        #   uri: ${GIT_CONFIG_URI:https://github.com/YOUR_ORG/ecommerce-config}
+        #   username: ${GIT_USERNAME:}
+        #   password: ${GIT_PASSWORD:}
+        #   default-label: main
+        #   search-paths:
+        #     - '{application}'    # look in a subdirectory named after the service
+        #   clone-on-start: true   # fail fast if Git is unreachable
+        #   timeout: 10
+
+        # Allow all services to encrypt/decrypt sensitive values
+        encrypt:
+          enabled: false           # set true with spring.cloud.config.server.encrypt.key
+
   profiles:
-    active: native
+    active: native                 # use native backend (classpath)
+
+server:
+  port: ${SERVER_PORT:8888}
+
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    health-check-url-path: /actuator/health
+    metadata-map:
+      startup: ${random.int}     # forces re-registration on restart
+
+config:
+  server:
+    username: ${CONFIG_SERVER_USERNAME:configuser}
+    password: ${CONFIG_SERVER_PASSWORD:configpassword}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, refresh, env
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 0.0
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.config: DEBUG
+    com.nazir.ecommerce: DEBUG
