@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>config-server</artifactId>
-    <n>Nazir :: Config Server</n>
+    <name>Nazir :: Config Server</name>
     <description>
         Spring Cloud Config Server — centralised configuration for all services.
         Uses native (classpath) backend in dev; switch to Git backend for prod.
