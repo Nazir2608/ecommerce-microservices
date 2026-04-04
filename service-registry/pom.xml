@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>service-registry</artifactId>
-    <n>Nazir :: Service Registry (Eureka)</n>
+    <name>Nazir :: Service Registry (Eureka)</name>
     <description>
         Netflix Eureka server — service discovery for all microservices.
         Services register here; Feign + Spring Cloud LoadBalancer resolve
