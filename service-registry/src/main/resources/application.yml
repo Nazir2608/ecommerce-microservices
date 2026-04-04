@@ -21,11 +21,11 @@ eureka:
   client:
     # ── CRITICAL: Eureka server must NOT register with itself ──────────────
     #
-    # LEARNING POINT — registerWithEureka: false
+    # registerWithEureka: false
     #   This IS the registry. It doesn't need to register itself with itself.
     #   If true: Eureka tries to register with localhost:8761 → fails → log spam.
     #
-    # LEARNING POINT — fetchRegistry: false
+    # fetchRegistry: false
     #   This IS the registry. It doesn't need to fetch registry data from itself.
     #   If true: tries to pull registry from itself → circular call → log spam.
     #
@@ -37,7 +37,7 @@ eureka:
   server:
     # ── Self-preservation mode ─────────────────────────────────────────────
     #
-    # LEARNING POINT — renewalPercentageThreshold:
+    # renewalPercentageThreshold:
     #   In PRODUCTION: set to 0.85 (default)
     #     → Eureka enters self-preservation if < 85% of expected heartbeats received
     #     → Protects against network blips evicting healthy services
@@ -62,6 +62,17 @@ management:
   tracing:
     sampling:
       probability: 0.0   # don't trace Eureka heartbeats (too noisy)
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  instance:
+    hostname: service-registry
+    prefer-ip-address: true
 
 logging:
   level:
