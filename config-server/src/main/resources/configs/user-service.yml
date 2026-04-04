@@ -1,0 +1,26 @@
+# user-service specific config (local dev defaults)
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/userdb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    hikari:
+      pool-name: UserServicePool
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:nazirredis}
+
+jwt:
+  secret: ${JWT_SECRET:NazirEcommerceSecretKeyMustBeAtLeast256BitsLongForHS256Algorithm!}
+  expiration: 86400000       # 24 hours
+  refresh-expiration: 604800000  # 7 days
+
+server:
+  port: ${SERVER_PORT:8081}

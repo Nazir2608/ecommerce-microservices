@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongouser:mongopassword@localhost:27017/productdb?authSource=admin}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:nazirredis}
+
+  cache:
+    type: redis
+
+server:
+  port: ${SERVER_PORT:8085}

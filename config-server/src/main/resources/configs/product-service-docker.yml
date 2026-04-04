@@ -1,0 +1,6 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongouser:mongopassword@mongodb:27017/productdb?authSource=admin
+    redis:
+      host: redis

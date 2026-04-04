@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared configuration — fetched by ALL services from config-server
+#
+# LEARNING POINT — Config inheritance:
+#   This file is the BASE. Every service gets these values unless overridden.
+#   service-specific files (user-service.yml) override only what differs.
+#   docker-profile files (user-service-docker.yml) override for Docker env.
+#   Result: DRY config — Kafka/Zipkin settings defined ONCE, used by all.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Distributed tracing (Zipkin) ──────────────────────────────────────────────
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL:http://localhost:9411}/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, env, loggers
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# ── Eureka client (shared by all business services) ───────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://eurekauser:eurekapassword@localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    health-check-url-path: /actuator/health
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# ── Kafka shared config ───────────────────────────────────────────────────────
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+# ── Logging (structured for production / readable for dev) ────────────────────
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO
+    com.nazir.ecommerce: DEBUG

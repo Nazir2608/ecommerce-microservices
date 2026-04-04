@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://orderdb:5432/orderdb

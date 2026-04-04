@@ -1,0 +1,12 @@
+# user-service overrides when SPRING_PROFILES_ACTIVE=docker
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/userdb
+  data:
+    redis:
+      host: redis
+
+logging:
+  level:
+    root: INFO
+    com.nazir.ecommerce: INFO   # less verbose in Docker
