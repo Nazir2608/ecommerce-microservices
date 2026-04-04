@@ -1,5 +1,3 @@
-server:
-  port: 8761
 spring:
   application:
     name: service-registry
@@ -7,13 +5,78 @@ spring:
     user:
       name: ${EUREKA_USERNAME:eurekauser}
       password: ${EUREKA_PASSWORD:eurekapassword}
+
+server:
+  port: ${SERVER_PORT:8761}
+
 eureka:
+  # Credentials injected by SecurityConfig (these are read by the properties binder)
+  username: ${EUREKA_USERNAME:eurekauser}
+  password: ${EUREKA_PASSWORD:eurekapassword}
+
   instance:
-    hostname: localhost
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: false
+
   client:
+    # ── CRITICAL: Eureka server must NOT register with itself ──────────────
+    #
+    # registerWithEureka: false
+    #   This IS the registry. It doesn't need to register itself with itself.
+    #   If true: Eureka tries to register with localhost:8761 → fails → log spam.
+    #
+    # fetchRegistry: false
+    #   This IS the registry. It doesn't need to fetch registry data from itself.
+    #   If true: tries to pull registry from itself → circular call → log spam.
+    #
     register-with-eureka: false
     fetch-registry: false
     service-url:
-      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://${eureka.username}:${eureka.password}@${eureka.instance.hostname}:${server.port}/eureka/
+
   server:
-    enable-self-preservation: false
+    # ── Self-preservation mode ─────────────────────────────────────────────
+    #
+    # renewalPercentageThreshold:
+    #   In PRODUCTION: set to 0.85 (default)
+    #     → Eureka enters self-preservation if < 85% of expected heartbeats received
+    #     → Protects against network blips evicting healthy services
+    #
+    #   In DEVELOPMENT: set to 0.49
+    #     → Almost never enters self-preservation
+    #     → Crashed dev services get evicted quickly (better for debugging)
+    #
+    enable-self-preservation: false           # dev only — set true in production
+    renewal-percent-threshold: 0.49          # dev: aggressive eviction
+    eviction-interval-timer-in-ms: 5000      # check for stale registrations every 5s
+    response-cache-update-interval-ms: 5000  # refresh dashboard every 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 0.0   # don't trace Eureka heartbeats (too noisy)
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+eureka:
+  instance:
+    hostname: service-registry
+    prefer-ip-address: true
+
+logging:
+  level:
+    root: INFO
+    com.netflix.eureka: WARN            # suppress Eureka internal noise
+    com.netflix.discovery: WARN         # suppress discovery client noise
+    com.nazir.ecommerce: DEBUG
