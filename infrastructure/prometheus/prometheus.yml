@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Prometheus scrape configuration — Phase 7
 #
-# LEARNING POINT — Prometheus pull model:
+#   Prometheus pull model:
 #   Prometheus does NOT receive metrics. It PULLS them by calling
 #   /actuator/prometheus on each service every 15 seconds.
 #
@@ -11,7 +11,7 @@
 #   Cons: if a service is behind a firewall, Prometheus can't reach it
 #         (Push gateway exists for this case — not needed here)
 #
-# LEARNING POINT — Labels:
+#   Labels:
 #   Labels are key-value pairs attached to every metric scraped from a target.
 #   { job="user-service", instance="localhost:8081" }
 #   In Grafana: filter by job="user-service" to see only that service's metrics.

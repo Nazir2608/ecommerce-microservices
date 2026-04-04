@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Prometheus Alert Rules — Phase 7
 #
-# LEARNING POINT — Alert anatomy:
+#   Alert anatomy:
 #   alert:  name shown in Grafana/Alertmanager
 #   expr:   PromQL expression that evaluates to true/false
 #   for:    condition must be true for this long before firing
