@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Shared configuration — fetched by ALL services from config-server
 #
-# LEARNING POINT — Config inheritance:
+# Config inheritance:
 #   This file is the BASE. Every service gets these values unless overridden.
 #   service-specific files (user-service.yml) override only what differs.
 #   docker-profile files (user-service-docker.yml) override for Docker env.

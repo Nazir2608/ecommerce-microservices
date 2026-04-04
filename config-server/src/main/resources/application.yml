@@ -11,7 +11,7 @@ spring:
       server:
         # ── Native backend: reads from classpath:/configs/ ─────────────────
         #
-        # LEARNING POINT — Native backend:
+        # L Native backend:
         #   searchLocations: classpath:/configs/
         #   → Config files are bundled INSIDE this JAR
         #   → No external Git needed

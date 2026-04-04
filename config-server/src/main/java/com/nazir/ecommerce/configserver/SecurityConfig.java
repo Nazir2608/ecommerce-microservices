@@ -15,15 +15,15 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Config Server Basic Auth security.
- *
- * LEARNING POINT — Why secure the config server?
- *   Config files contain database passwords, JWT secrets, API keys.
- *   Without auth: any process can call GET /user-service/docker
- *                 and receive all credentials in plaintext.
- *   With Basic Auth: only services with the correct username:password can fetch config.
- *
- *   In docker-compose: CONFIG_SERVER_URI=http://configuser:configpassword@config-server:8888
- *   This embeds credentials in the bootstrap URL.
+ * <p>
+ * Why secure the config server?
+ * Config files contain database passwords, JWT secrets, API keys.
+ * Without auth: any process can call GET /user-service/docker
+ * and receive all credentials in plaintext.
+ * With Basic Auth: only services with the correct username:password can fetch config.
+ * <p>
+ * In docker-compose: CONFIG_SERVER_URI=http://configuser:configpassword@config-server:8888
+ * This embeds credentials in the bootstrap URL.
  */
 @Configuration
 @EnableWebSecurity
@@ -38,13 +38,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                .requestMatchers("/actuator/prometheus").permitAll()
-                .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults());
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults());
         return http.build();
     }
 

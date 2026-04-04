@@ -21,7 +21,7 @@
 
     <dependencies>
         <!--
-            LEARNING POINT — spring-cloud-config-server:
+             spring-cloud-config-server:
             Turns this app into a Config Server with @EnableConfigServer.
             Services call: GET http://config-server:8888/{app}/{profile}
             Response: merged properties for that app + profile.
