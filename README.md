@@ -7,10 +7,13 @@ A production-ready learning project demonstrating core microservices patterns wi
 ## Architecture Overview
 
 ```
-Client
+Client (Port 80)
   │
   ▼
-API Gateway (8080)          ← JWT auth, rate limiting, circuit breaker, CORS
+Nginx (Port 80)             ← Reverse proxy, Gzip compression, SSL (if configured)
+  │
+  ▼
+API Gateway (Port 8080)     ← JWT auth, rate limiting, circuit breaker, CORS
   │         │
   │    ┌────┴──────────────────────────────────┐
   │    │  Service Registry (Eureka :8761)       │
@@ -26,8 +29,8 @@ API Gateway (8080)          ← JWT auth, rate limiting, circuit breaker, CORS
 Async Event Bus (Kafka)
   Topics: user.events · order.events · payment.events · notification.events
 
-Observability
-  Zipkin (:9411) · Prometheus (:9090) · Grafana (:3001) · ELK
+Observability & Logging
+  Zipkin (:9411) · Prometheus (:9090) · Grafana (:3001) · Logstash · ELK
 ```
 
 ---
@@ -117,31 +120,27 @@ View the full call chain at http://localhost:9411 — see latency per service.
 
 ```bash
 cp .env.example .env          # review and adjust if needed
-chmod +x scripts/dev-start.sh
-./scripts/dev-start.sh        # starts all containers
+docker compose up -d          # starts all containers
 ```
 
 ### 2. Verify services are up
 
 ```bash
 # Eureka dashboard (all services should appear after ~60 seconds)
+# User: eurekauser, Pass: eurekapassword
 open http://localhost:8761
 
 # API Gateway health
 curl http://localhost:8080/actuator/health
 ```
 
-### 3. Seed test data and trigger the full Saga
+### 3. Monitoring and Observability
 
-```bash
-chmod +x scripts/seed-data.sh
-./scripts/seed-data.sh
-```
-
-Then open:
 - **Kafdrop** http://localhost:9000 — browse `order.events` and `payment.events` topics
 - **Mailhog** http://localhost:8025 — see welcome email + order confirmation
 - **Zipkin** http://localhost:9411 — trace the order-service → product-service Feign call
+- **Grafana** http://localhost:3001 — view metrics dashboards (admin / admin)
+- **Nginx** http://localhost:80 — external entry point (forwards to API Gateway)
 
 ---
 
@@ -150,13 +149,15 @@ Then open:
 Start infrastructure via Docker, run Spring services locally in your IDE:
 
 ```bash
-# Start only infra
-./scripts/dev-start.sh infra
+# Start only infrastructure
+docker compose up -d postgres mongodb orderdb mysql redis zookeeper kafka zipkin mailhog
+```
 
-# Run each service from its directory
+Then run each service using Maven:
+```bash
 cd user-service && mvn spring-boot:run
-cd product-service && mvn spring-boot:run &
-cd order-service && mvn spring-boot:run &
+cd product-service && mvn spring-boot:run
+cd order-service && mvn spring-boot:run
 ```
 
 ---
@@ -169,45 +170,30 @@ ecommerce-microservices/
 ├── config-server/              Spring Cloud Config Server (port 8888)
 ├── service-registry/           Eureka Server (port 8761)
 ├── api-gateway/                Spring Cloud Gateway (port 8080)
-│   ├── filter/
-│   │   └── AuthenticationFilter.java    ← JWT validation
-│   └── config/
-│       └── GatewayConfig.java           ← Rate limiter + fallbacks
 │
-├── user-service/               PostgreSQL + JWT + Kafka producer
-│   ├── model/User.java                  ← JPA entity
-│   ├── security/JwtTokenProvider.java   ← Token generation/validation
-│   ├── service/AuthService.java         ← Register, login, refresh, logout
-│   └── event/UserEventPublisher.java    ← Publishes to user.events
-│
+├── user-service/               PostgreSQL + Redis + Kafka
 ├── product-service/            MongoDB + Redis cache
-│   ├── model/Product.java               ← MongoDB @Document
-│   └── service/ProductService.java      ← @Cacheable, stock reservation
-│
-├── order-service/              PostgreSQL + Feign + Resilience4j + Kafka
-│   ├── client/ProductServiceClient.java ← Feign + circuit breaker + fallback
-│   ├── model/Order.java                 ← State machine (PENDING→CONFIRMED...)
-│   └── service/OrderService.java        ← Saga orchestration + Kafka consumer
-│
-├── payment-service/            MySQL + Kafka consumer + idempotency
-│   ├── model/Payment.java               ← idempotencyKey field
-│   └── service/PaymentService.java      ← handleOrderEvent() + deduplication
-│
-├── notification-service/       Kafka multi-topic consumer + Redis dedup
-│   └── service/NotificationService.java ← Email templates + idempotency
+├── order-service/              PostgreSQL + Feign + Kafka
+├── payment-service/            MySQL + Kafka
+├── notification-service/       Kafka consumer + Redis
 │
 ├── infrastructure/
-│   ├── prometheus/prometheus.yml        ← Scrape config for all services
-│   └── grafana/provisioning/            ← Pre-built dashboards
+│   ├── nginx/                  Reverse proxy configuration
+│   ├── logstash/               Log pipeline for ELK
+│   ├── prometheus/             Scrape config for all services
+│   └── grafana/                Pre-built dashboards
 │
 ├── scripts/
-│   ├── dev-start.sh                     ← Quick-start script
-│   └── seed-data.sh                     ← Test data + happy-path flow
+│   ├── deploy.sh               CI/CD deployment script
+│   ├── rollback.sh             Emergency rollback script
+│   └── server-setup.sh         Initial server provisioning
 │
-├── .github/workflows/ci-cd.yml          ← GitHub Actions: test → build → push → deploy
-├── docker-compose.yml                   ← Full stack (all services + infra)
-├── .env.example                         ← Environment variable template
-└── README.md
+├── docs/                       Additional documentation & templates
+│
+├── .github/workflows/          CI/CD GitHub Actions pipelines
+├── docker-compose.yml          Full stack configuration
+├── .env.example                Environment variable template
+└── pom.xml                     Root project descriptor (Java 21, Spring Boot 3.2)
 ```
 
 ---
@@ -246,30 +232,27 @@ POST /api/v1/orders/{id}/cancel       → Cancel order (releases stock)
 Developer pushes to main
         │
         ▼
-GitHub Actions: detect-changes
+GitHub Actions: [ci-all-services.yml]
         │
-        ├── Only changed services → run tests (Testcontainers)
+        ├── Build & Test each service (Maven + Testcontainers)
         │
-        ├── Build Docker image (multi-stage, layered JAR)
-        │   Cache layers in GitHub Actions Cache (fast rebuilds)
+        ├── Build Docker image (multi-stage)
         │
-        ├── Push to GitHub Container Registry (ghcr.io)
+        ├── Push to GHCR (ghcr.io/nazir/...)
         │
-        └── SSH to staging server
+        └── SSH to Staging Server (deploy.sh)
             └── docker compose pull + up -d
 ```
 
-### Scaling a service
-```bash
-# Run 3 instances of order-service (Eureka load-balances automatically)
-docker compose up -d --scale order-service=3
-```
+### Manual Controls
+- `pr-checks.yml`: Runs on every Pull Request to ensure quality.
+- `release.yml`: Triggered by creating a new tag (e.g., `v1.0.0`).
+- `deploy.sh`: Handles zero-downtime restarts and health checks on the server.
 
-### Rolling update (zero downtime for stateless services)
-```bash
-docker compose pull order-service
-docker compose up -d --no-deps order-service
-```
+### GitHub Secrets Required
+To enable deployments, configure the following in your repo:
+- `STAGING_HOST`, `STAGING_USER`, `STAGING_SSH_KEY`
+- See [docs/github-secrets-setup.md](docs/github-secrets-setup.md) for full details.
 
 ---
 
@@ -300,3 +283,4 @@ After building and running this project, here's what to explore next:
 6. **Distributed caching with Redis Cluster** — multi-node Redis for high availability
 7. **Dead Letter Topics** — handle poison-pill Kafka messages that keep failing
 8. **Saga Orchestration** — compare choreography (what we built) vs orchestration
+
