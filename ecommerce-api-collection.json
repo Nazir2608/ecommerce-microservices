@@ -50,7 +50,7 @@
             "  const data = pm.response.json().data;",
             "  pm.collectionVariables.set('accessToken',  data.accessToken);",
             "  pm.collectionVariables.set('refreshToken', data.refreshToken);",
-            "  pm.collectionVariables.set('userId',       data.userId);",
+            "  pm.collectionVariables.set('userId',       data.user.id);",
             "  pm.test('Login success',    () => pm.expect(pm.response.code).to.equal(200));",
             "  pm.test('Token returned',   () => pm.expect(data.accessToken).to.not.be.empty);",
             "  console.log('Token saved:', data.accessToken.substring(0,20) + '...');",
@@ -69,7 +69,7 @@
             "if (pm.response.code === 200) {",
             "  const data = pm.response.json().data;",
             "  pm.collectionVariables.set('accessToken', data.accessToken);",
-            "  pm.collectionVariables.set('userId', data.userId);",
+            "  pm.collectionVariables.set('userId', data.user.id);",
             "  pm.test('Admin login success', () => pm.expect(pm.response.code).to.equal(200));",
             "}"
           ], "type": "text/javascript" }}],
@@ -134,7 +134,7 @@
         {
           "name": "Update My Profile",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type",  "value": "application/json" }
@@ -146,12 +146,12 @@
         {
           "name": "Change Password",
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type",  "value": "application/json" }
             ],
-            "url": { "raw": "{{baseUrl}}/api/v1/users/me/password", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me","password"] },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me/change-password", "host": ["{{baseUrl}}"], "path": ["api","v1","users","me","change-password"] },
             "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"Test@12345\",\n  \"newPassword\":     \"NewPass@12345\"\n}" }
           }
         },
@@ -182,7 +182,7 @@
         {
           "name": "Suspend User (Admin)",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type",  "value": "application/json" }
