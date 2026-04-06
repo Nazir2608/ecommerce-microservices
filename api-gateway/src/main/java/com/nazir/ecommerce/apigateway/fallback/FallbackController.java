@@ -32,27 +32,27 @@ import java.util.Map;
 @Slf4j
 public class FallbackController {
 
-    @GetMapping("/user-service")
+    @RequestMapping("/user-service")
     public ResponseEntity<Map<String, Object>> userServiceFallback() {
         return fallback("user-service", "Authentication and user management");
     }
 
-    @GetMapping("/product-service")
+    @RequestMapping("/product-service")
     public ResponseEntity<Map<String, Object>> productServiceFallback() {
         return fallback("product-service", "Product catalog and inventory");
     }
 
-    @GetMapping("/order-service")
+    @RequestMapping("/order-service")
     public ResponseEntity<Map<String, Object>> orderServiceFallback() {
         return fallback("order-service", "Order placement and management");
     }
 
-    @GetMapping("/payment-service")
+    @RequestMapping("/payment-service")
     public ResponseEntity<Map<String, Object>> paymentServiceFallback() {
         return fallback("payment-service", "Payment processing");
     }
 
-    @GetMapping("/notification-service")
+    @RequestMapping("/notification-service")
     public ResponseEntity<Map<String, Object>> notificationServiceFallback() {
         return fallback("notification-service", "Notifications");
     }
