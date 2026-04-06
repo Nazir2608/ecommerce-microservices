@@ -11,11 +11,6 @@
   <springProfile name="!docker">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-        <!--
-          %clr(...)        → colorize the enclosed text based on log level
-          [%X{traceId:-}]  → Micrometer inserts traceId into MDC automatically
-          [%X{spanId:-}]   → same for spanId
-        -->
         <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([${SERVICE_NAME}]){cyan} %clr([%X{traceId:-},%X{spanId:-}]){blue} %clr(%-40.40logger{39}){magenta} : %m%n%wEx</pattern>
       </encoder>
     </appender>
@@ -29,11 +24,6 @@
   <springProfile name="docker">
     <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-        <!--
-          LogstashEncoder outputs structured JSON automatically.
-          MDC fields (traceId, spanId) are included automatically.
-          Add custom fields present on every log line:
-        -->
         <customFields>{"service":"${SERVICE_NAME}","environment":"docker"}</customFields>
         <fieldNames>
           <timestamp>@timestamp</timestamp>
