@@ -7,7 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * API Gateway — Phase 6. Single entry point for all external traffic.
  *
- * LEARNING POINT — What the gateway does:
+ *   What the gateway does:
  *
  *   CLIENT → port 8080 (gateway) → routes to services
  *
