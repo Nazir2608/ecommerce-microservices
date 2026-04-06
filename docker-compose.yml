@@ -313,6 +313,7 @@ services:
       - "8080:8080"
     environment:
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:-nazirredis}
@@ -346,6 +347,7 @@ services:
     environment:
       SERVER_PORT: 8081
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       DB_URL: jdbc:postgresql://postgres:5432/userdb
       DB_USER: ${POSTGRES_USER:-postgres}
@@ -386,6 +388,7 @@ services:
     environment:
       SERVER_PORT: 8085
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       MONGODB_URI: mongodb://${MONGO_USER:-mongouser}:${MONGO_PASSWORD:-mongopassword}@mongodb:27017/productdb?authSource=admin
       REDIS_HOST: redis
@@ -421,6 +424,7 @@ services:
     environment:
       SERVER_PORT: 8082
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       DB_URL: jdbc:postgresql://orderdb:5432/orderdb
       DB_USER: ${POSTGRES_USER:-postgres}
@@ -455,6 +459,7 @@ services:
     environment:
       SERVER_PORT: 8083
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       DB_URL: jdbc:mysql://mysql:3306/paymentdb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       DB_USER: root
@@ -489,6 +494,7 @@ services:
     environment:
       SERVER_PORT: 8084
       CONFIG_SERVER_URI: http://configuser:configpassword@config-server:8888
+      SPRING_CONFIG_IMPORT: optional:configserver:http://configuser:configpassword@config-server:8888
       EUREKA_URI: http://${EUREKA_USERNAME:-eurekauser}:${EUREKA_PASSWORD:-eurekapassword}@service-registry:8761/eureka
       REDIS_HOST: redis
       REDIS_PORT: 6379
