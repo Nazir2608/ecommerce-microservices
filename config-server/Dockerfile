@@ -1,19 +1,34 @@
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /build
+
+# Copy root pom
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
-COPY src ./src
-RUN mvn package -DskipTests -q
-RUN java -Djarmode=layertools -jar target/*.jar extract --destination target/extracted
+# Strip <modules> to prevent Maven from looking for other modules
+RUN sed -i '/<modules>/,/<\/modules>/d' pom.xml
+
+# Copy submodule pom
+COPY config-server/pom.xml config-server/
+
+# Resolve dependencies for the submodule
+RUN mvn -f config-server/pom.xml dependency:go-offline -q
+
+# Copy submodule source
+COPY config-server/src config-server/src
+
+# Build the submodule
+RUN mvn -f config-server/pom.xml package -DskipTests -q
+
+# Extract layered JAR
+RUN java -Djarmode=layertools -jar config-server/target/*.jar extract --destination config-server/target/extracted
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser:appgroup
 WORKDIR /app
-COPY --from=builder /build/target/extracted/dependencies/          ./
-COPY --from=builder /build/target/extracted/spring-boot-loader/    ./
-COPY --from=builder /build/target/extracted/snapshot-dependencies/ ./
-COPY --from=builder /build/target/extracted/application/           ./
+COPY --from=builder /build/config-server/target/extracted/dependencies/          ./
+COPY --from=builder /build/config-server/target/extracted/spring-boot-loader/    ./
+COPY --from=builder /build/config-server/target/extracted/snapshot-dependencies/ ./
+COPY --from=builder /build/config-server/target/extracted/application/           ./
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
   CMD wget --no-verbose --tries=1 --spider \
