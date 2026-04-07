@@ -135,8 +135,7 @@ public class Order {
 
     public void cancel(String reason) {
         if (status == OrderStatus.SHIPPED || status == OrderStatus.DELIVERED) {
-            throw new IllegalStateException(
-                    "Cannot cancel order in status " + status + ". Only PENDING/CONFIRMED orders can be cancelled.");
+            throw new IllegalStateException("Cannot cancel order in status " + status + ". Only PENDING/CONFIRMED orders can be cancelled.");
         }
         this.status = OrderStatus.CANCELLED;
         this.cancellationReason = reason;
@@ -144,8 +143,7 @@ public class Order {
 
     private void requireStatus(OrderStatus required, String op) {
         if (this.status != required) {
-            throw new IllegalStateException(
-                    "Cannot " + op + " order with status '" + status + "'. Required: " + required);
+            throw new IllegalStateException("Cannot " + op + " order with status '" + status + "'. Required: " + required);
         }
     }
 

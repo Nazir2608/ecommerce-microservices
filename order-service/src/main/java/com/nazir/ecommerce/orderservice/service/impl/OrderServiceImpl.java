@@ -194,8 +194,7 @@ public class OrderServiceImpl implements OrderService {
 
         // ── Idempotency guard ──────────────────────────────────────────────
         if (order.getStatus() != Order.OrderStatus.PENDING) {
-            log.info("Order {} already in status {} — skipping payment event (idempotent)",
-                    order.getId(), order.getStatus());
+            log.info("Order {} already in status {} — skipping payment event (idempotent)", order.getId(), order.getStatus());
             return;
         }
 
@@ -217,8 +216,7 @@ public class OrderServiceImpl implements OrderService {
                                 .build());
             } catch (Exception e) {
                 // Log but don't fail — payment already processed, stock can be reconciled manually
-                log.error("Failed to confirm stock for product={} orderId={}: {}",
-                        item.getProductId(), order.getId(), e.getMessage());
+                log.error("Failed to confirm stock for product={} orderId={}: {}", item.getProductId(), order.getId(), e.getMessage());
             }
         }
 
@@ -252,8 +250,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getById(UUID orderId, UUID userId) {
         Order order = orderRepository.findByIdAndUserIdWithItems(orderId, userId)
-                .orElseThrow(() -> new OrderNotFoundException(
-                        "Order not found: " + orderId + " for user: " + userId));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId + " for user: " + userId));
         return orderMapper.toResponse(order);
     }
 
@@ -266,8 +263,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(UUID userId) {
-        return orderRepository.findByUserIdWithItems(userId)
-                .stream().map(orderMapper::toResponse).toList();
+        return orderRepository.findByUserIdWithItems(userId).stream().map(orderMapper::toResponse).toList();
     }
 
     @Override
@@ -320,8 +316,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             ApiResponseWrapper<ProductInfo> response = productClient.getProduct(productId);
             if (response == null || !response.isSuccess() || response.getData() == null) {
-                throw new ProductUnavailableException(
-                    "Product not found or unavailable: " + productId);
+                throw new ProductUnavailableException("Product not found or unavailable: " + productId);
             }
             return response.getData();
         } catch (ProductUnavailableException e) {
