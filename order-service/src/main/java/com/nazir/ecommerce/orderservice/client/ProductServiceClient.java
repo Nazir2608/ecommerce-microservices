@@ -74,20 +74,17 @@ public interface ProductServiceClient {
         @Override
         public void reserveStock(String productId, StockRequest request) {
             log.error("[CircuitBreaker OPEN] reserveStock({}) — CANNOT place order!", productId);
-            throw new RuntimeException(
-                    "Product service is currently unavailable. Please try again in a few moments.");
+            throw new RuntimeException("Product service is currently unavailable. Please try again in a few moments.");
         }
 
         @Override
         public void releaseStock(String productId, StockRequest request) {
-            log.error("[CircuitBreaker OPEN] releaseStock({}) — stock reservation NOT released! orderId={}",
-                    productId, request.getOrderId());
+            log.error("[CircuitBreaker OPEN] releaseStock({}) — stock reservation NOT released! orderId={}", productId, request.getOrderId());
         }
 
         @Override
         public void confirmStock(String productId, StockRequest request) {
-            log.error("[CircuitBreaker OPEN] confirmStock({}) — stock deduction FAILED! orderId={}",
-                    productId, request.getOrderId());
+            log.error("[CircuitBreaker OPEN] confirmStock({}) — stock deduction FAILED! orderId={}", productId, request.getOrderId());
         }
     }
 }
