@@ -17,6 +17,5 @@ import java.util.UUID;
  */
 public interface PaymentGateway {
     PaymentGatewayResult charge(UUID orderId, BigDecimal amount, String currency, String paymentMethod);
-
     PaymentGatewayResult refund(String transactionId, BigDecimal amount);
 }
