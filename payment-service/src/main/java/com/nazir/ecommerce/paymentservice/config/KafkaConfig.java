@@ -22,8 +22,6 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    // ── Producer (payment.events) ─────────────────────────────────────────
-
     @Bean
     public ProducerFactory<String, PaymentEvent> paymentEventProducerFactory() {
         return new DefaultKafkaProducerFactory<>(Map.of(
