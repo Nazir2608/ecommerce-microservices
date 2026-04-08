@@ -10,8 +10,12 @@ import java.util.UUID;
 
 public interface PaymentService {
     void processOrderPayment(OrderEvent event);  // called by @KafkaListener
+
     PaymentResponse getByOrderId(UUID orderId);
+
     PaymentResponse getById(UUID paymentId);
+
     Page<PaymentResponse> getByUser(UUID userId, Pageable pageable);
+
     PaymentResponse refund(UUID paymentId, RefundRequest request);
 }

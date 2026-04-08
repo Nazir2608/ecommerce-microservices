@@ -24,33 +24,34 @@ import java.util.UUID;
 
 /**
  * Payment service implementation.
- *
+ * <p>
  * ═══════════════════════════════════════════════════════════════════════════
  * IDEMPOTENCY IMPLEMENTATION (the core of Phase 4):
  * ═══════════════════════════════════════════════════════════════════════════
- *
- *  processOrderPayment() is called by @KafkaListener — Kafka may deliver
- *  the same ORDER_CREATED message more than once (at-least-once guarantee).
- *
- *  Without idempotency:
- *    1st delivery → charge customer $99 → SUCCESS
- *    2nd delivery → charge customer $99 → SUCCESS (double charge!)
- *
- *  With idempotency key (orderId as UNIQUE key in DB):
- *    1st delivery → no existing record → charge → insert row → publish SUCCESS
- *    2nd delivery → findByIdempotencyKey(orderId) → found! → return existing result
- *    Customer is NEVER double-charged.
- *
- *  Alternative (fail-fast): try INSERT first → catch UNIQUE violation → look up existing.
- *  We use the check-first approach for clarity.
- *
+ * <p>
+ * processOrderPayment() is called by @KafkaListener — Kafka may deliver
+ * the same ORDER_CREATED message more than once (at-least-once guarantee).
+ * <p>
+ * Without idempotency:
+ * 1st delivery → charge customer $99 → SUCCESS
+ * 2nd delivery → charge customer $99 → SUCCESS (double charge!)
+ * <p>
+ * With idempotency key (orderId as UNIQUE key in DB):
+ * 1st delivery → no existing record → charge → insert row → publish SUCCESS
+ * 2nd delivery → findByIdempotencyKey(orderId) → found! → return existing result
+ * Customer is NEVER double-charged.
+ * <p>
+ * Alternative (fail-fast): try INSERT first → catch UNIQUE violation → look up existing.
+ * We use the check-first approach for clarity.
+ * <p>
  * ═══════════════════════════════════════════════════════════════════════════
+ *
  * @Transactional behavior:
  * ═══════════════════════════════════════════════════════════════════════════
- *   DB write (payment row) + Kafka publish are NOT in the same transaction.
- *   If Kafka publish fails after DB commit → order-service never hears result.
- *   Real solution: Transactional Outbox Pattern (Phase 7+ stretch goal).
- *   For now: DB commit first, then Kafka (if Kafka fails, payment is in DB).
+ * DB write (payment row) + Kafka publish are NOT in the same transaction.
+ * If Kafka publish fails after DB commit → order-service never hears result.
+ * Real solution: Transactional Outbox Pattern (Phase 7+ stretch goal).
+ * For now: DB commit first, then Kafka (if Kafka fails, payment is in DB).
  */
 @Service
 @RequiredArgsConstructor
@@ -58,18 +59,18 @@ import java.util.UUID;
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 
-    private final PaymentRepository    paymentRepository;
-    private final PaymentGateway       paymentGateway;
+    private final PaymentRepository paymentRepository;
+    private final PaymentGateway paymentGateway;
     private final PaymentEventPublisher eventPublisher;
-    private final PaymentMapper         paymentMapper;
+    private final PaymentMapper paymentMapper;
 
     // ── Kafka consumer — ORDER_CREATED triggers payment ────────────────────
 
     @Override
     @KafkaListener(
-        topics           = "order.events",
-        groupId          = "payment-service-group",
-        containerFactory = "orderEventListenerFactory"
+            topics = "order.events",
+            groupId = "payment-service-group",
+            containerFactory = "orderEventListenerFactory"
     )
     public void processOrderPayment(OrderEvent event) {
         if (event == null || event.getOrderId() == null) {
