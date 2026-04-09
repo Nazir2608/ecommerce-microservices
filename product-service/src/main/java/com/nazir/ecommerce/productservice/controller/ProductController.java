@@ -66,8 +66,7 @@ public class ProductController {
     @Operation(summary = "Create product (SELLER/ADMIN)")
     public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody CreateProductRequest request, @RequestHeader("X-Auth-User-Id") String sellerId) {
         ProductResponse response = productService.create(request, sellerId);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Product created"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Product created"));
     }
 
     @PutMapping("/{id}")
